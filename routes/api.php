@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\RetreatPlanController;
 use App\Http\Controllers\Api\FoodComfortFormController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\UserApiController;
 
 // Route d'enregistrement temporaire (onboarding mobile)
 Route::post('/auth/register-temporary', [AuthController::class, 'registerTemporary']);
@@ -19,8 +20,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Auth route for login
-Route::post('login', [AuthController::class, 'login']);
+// Auth routes (login, logout)
+Route::post('login', [UserApiController::class, 'login']);
+Route::post('logout', [UserApiController::class, 'logout'])->middleware('auth:sanctum');
 
 // Routes publiques en lecture (doivent être définies AVANT les routes protégées)
 Route::get('blogs', [BlogController::class, 'index']);
@@ -101,4 +103,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Payment history routes
     Route::get('payments/history', [PaymentController::class, 'getPaymentHistory']);
     Route::get('payments/{paymentId}', [PaymentController::class, 'getPayment']);
+    
+    // User payment statistics
+    Route::get('user/payments', [UserApiController::class, 'getPayments']);
+    Route::get('user/payment-stats', [UserApiController::class, 'getPaymentStats']);
 });

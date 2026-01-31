@@ -73,6 +73,7 @@ class FoodComfortFormController extends Controller
             'password' => Hash::make($password),
             'role' => 'user',
             'device_id' => $userId,
+            'date_of_birth' => now()->subYears(18)->toDateString(), // Default to 18 years ago
         ]);
 
         // Préparer les données du formulaire

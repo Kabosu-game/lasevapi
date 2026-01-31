@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->date('date_of_birth');
+            $table->date('date_of_birth')->nullable();
             $table->boolean('is_premium')->default(false);
             $table->timestamp('premium_expires_at')->nullable();
-            $table->enum('gender', ['male', 'female', 'other']);
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->enum('role', ['admin', 'user'])->default('user');
             $table->string('device_id', 191)->unique();
             $table->string('password')->nullable();
