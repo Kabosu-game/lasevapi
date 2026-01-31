@@ -15,16 +15,21 @@
             
             <div class="mb-3">
                 <label for="category_id" class="form-label">Catégorie <span class="text-danger">*</span></label>
-                <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
-                    <option value="">Sélectionner une catégorie</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ old('category_id', $affirmation->category_id) == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required style="max-width: 300px;">
+                        <option value="">Sélectionner une catégorie</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id', $affirmation->category_id) == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <a href="{{ route('admin.affirmation-categories.index') }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="bi bi-tags"></i> Gérer les catégories
+                    </a>
+                </div>
                 @error('category_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
             </div>
 

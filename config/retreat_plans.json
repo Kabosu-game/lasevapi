@@ -1,0 +1,162 @@
+{
+  "payment_plans": [
+    {
+      "id": 1,
+      "title": "Plan Essentiel",
+      "description": "Ce plan offre aux participants un accès aux ressources essentielles pour débuter leur transformation personnelle",
+      "price": 2000,
+      "currency": "USD",
+      "duration_days": 7,
+      "status": "available",
+      "features": [
+        "Accès aux méditations guidées",
+        "Journal de gratitude numérique",
+        "Affirmations quotidiennes",
+        "Support par email"
+      ],
+      "tags": [
+        "Essentiel",
+        "Débutant",
+        "Support email",
+        "Ressources de base"
+      ],
+      "services": [
+        "Méditations guidées",
+        "Journal de gratitude",
+        "Affirmations quotidiennes",
+        "Support par email"
+      ],
+      "target_audience": "Utilisateurs voulant débuter avec budget limité",
+      "access_delay_hours": 0
+    },
+    {
+      "id": 2,
+      "title": "Plan Standard",
+      "description": "Une immersion complète de 14 jours avec accompagnement et ressources étendues pour une transformation progressive",
+      "price": 3000,
+      "currency": "USD",
+      "duration_days": 14,
+      "status": "available",
+      "features": [
+        "Tous les services du Plan Essentiel",
+        "Espace ZEN en pleine nature",
+        "Confort matériel optimal",
+        "Libération émotionnelle",
+        "Support par téléphone",
+        "Immersion progressive de 14 jours"
+      ],
+      "tags": [
+        "Standard",
+        "Intermédiaire",
+        "Support téléphone",
+        "Immersion complète"
+      ],
+      "services": [
+        "Méditations guidées",
+        "Journal de gratitude",
+        "Affirmations quotidiennes",
+        "Espace ZEN",
+        "Confort matériel",
+        "Support par téléphone",
+        "Immersion progressive"
+      ],
+      "target_audience": "Utilisateurs prêts pour une immersion de 2 semaines",
+      "access_delay_hours": 24,
+      "includes": {
+        "video_replay": true,
+        "integration_guide": true,
+        "private_group_access": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Plan Premium",
+      "description": "Un programme structuré autour de 3 piliers avec accompagnement personnalisé et chef de cuisine privé pour une transformation complète",
+      "price": 5000,
+      "currency": "USD",
+      "duration_days": 14,
+      "status": "available",
+      "features": [
+        "Tous les services du Plan Standard",
+        "Pilier I: Libération du Passé (Jour 1-5)",
+        "Pilier II: Alchimie Émotionnelle (Jour 6-9)",
+        "Pilier III: Expansion et Manifestation (Jour 10-14)",
+        "Chef de cuisine privé",
+        "Accompagnement TAR personnalisé",
+        "Soins sur mesure",
+        "Support prioritaire 24/7"
+      ],
+      "tags": [
+        "Premium",
+        "Avancé",
+        "3 piliers",
+        "Accompagnement complet",
+        "Chef privé",
+        "Support 24/7"
+      ],
+      "services": [
+        "Méditations guidées",
+        "Journal de gratitude",
+        "Affirmations quotidiennes",
+        "Espace ZEN",
+        "Confort matériel premium",
+        "Pilier I: Libération du Passé",
+        "Pilier II: Alchimie Émotionnelle",
+        "Pilier III: Expansion et Manifestation",
+        "Chef de cuisine privé",
+        "Accompagnement TAR",
+        "Soins personnalisés",
+        "Support prioritaire 24/7"
+      ],
+      "target_audience": "Utilisateurs cherchant une transformation complète",
+      "access_delay_hours": 0,
+      "includes": {
+        "unlimited_video_replay": true,
+        "post_retreat_mentoring_months": 3,
+        "written_action_plan": true,
+        "completion_certificate": true,
+        "vip_events_access": true,
+        "professional_photo": true
+      }
+    }
+  ],
+  "payment_methods": {
+    "stripe": {
+      "enabled": true,
+      "currency": "USD",
+      "fees_percentage": 2.9,
+      "fees_fixed": 0.30
+    },
+    "paypal": {
+      "enabled": true,
+      "currency": "USD",
+      "fees_percentage": 3.49,
+      "fees_fixed": 0.49
+    }
+  },
+  "payment_statuses": [
+    "pending",
+    "completed",
+    "failed",
+    "refunded"
+  ],
+  "additional_offers": {
+    "returning_customer_discount": {
+      "3_months": 0.10,
+      "6_months": 0.15
+    },
+    "family_package": {
+      "3_persons_essentiel": 0.20,
+      "2_persons_standard": 0.15
+    },
+    "early_bird": {
+      "30_days_advance": 0.05
+    }
+  },
+  "metadata": {
+    "created_at": "2026-01-31",
+    "version": "1.0",
+    "updated_by": "System",
+    "last_modified": "2026-01-31T00:00:00Z"
+  }
+}

@@ -12,23 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('affirmations', function (Blueprint $table) {
-            // Supprimer l'ancienne clé étrangère si elle existe (vers categories)
+            // Supprimer l'ancienne clé étrangère et colonne si elles existent (vers categories)
             if (Schema::hasColumn('affirmations', 'category_id')) {
-                // Vérifier si la contrainte existe
-                $foreignKeys = Schema::getConnection()
-                    ->getDoctrineSchemaManager()
-                    ->listTableForeignKeys('affirmations');
-                
-                foreach ($foreignKeys as $foreignKey) {
-                    if (in_array('category_id', $foreignKey->getColumns())) {
-                        $table->dropForeign([$foreignKey->getName()]);
-                    }
-                }
-                
+                $table->dropForeign(['category_id']);
                 $table->dropColumn('category_id');
             }
-            
-            // Ajouter la nouvelle colonne avec la bonne clé étrangère
+        });
+
+        Schema::table('affirmations', function (Blueprint $table) {
+            // Ajouter la nouvelle colonne avec la bonne clé étrangère (vers affirmation_categories)
             $table->foreignId('category_id')->nullable()->after('id')->constrained('affirmation_categories')->onDelete('set null');
         });
     }

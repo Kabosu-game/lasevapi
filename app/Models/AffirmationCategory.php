@@ -25,7 +25,7 @@ class AffirmationCategory extends Model
      */
     public function affirmations(): HasMany
     {
-        return $this->hasMany(Affirmation::class);
+        return $this->hasMany(Affirmation::class, 'category_id');
     }
 
     /**

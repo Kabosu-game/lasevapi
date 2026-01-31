@@ -25,5 +25,22 @@ class DailyQuoteController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Obtenir les 3 phrases du jour (pour l'app - affichage selon l'heure)
+     */
+    public function getTodayQuotes(Request $request)
+    {
+        $date = $request->input('date') ? \Carbon\Carbon::parse($request->input('date')) : null;
+        $quotes = DailyQuote::getQuotesForDate($date);
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'quotes' => $quotes,
+                'date' => ($date ?? now())->format('Y-m-d'),
+            ],
+        ]);
+    }
 }
 

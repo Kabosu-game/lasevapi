@@ -233,6 +233,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.affirmation-categories.index') }}" class="{{ request()->routeIs('admin.affirmation-categories.*') ? 'active' : '' }}">
+                    <i class="bi bi-tags"></i>
+                    <span>Catégories affirmations</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.events.index') }}" class="{{ request()->routeIs('admin.events.*') ? 'active' : '' }}">
                     <i class="bi bi-calendar-event"></i>
                     <span>Événements</span>
@@ -257,9 +263,33 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Paiements</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.dishes.index') }}" class="{{ request()->routeIs('admin.dishes.*') ? 'active' : '' }}">
+                    <i class="bi bi-egg-fried"></i>
+                    <span>Plats (Cuisine)</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.chefs.index') }}" class="{{ request()->routeIs('admin.chefs.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Chefs cuisiniers</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.food-comfort-forms.index') }}" class="{{ request()->routeIs('admin.food-comfort-forms.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-medical"></i>
                     <span>Formulaires Retraite</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.home-menu-items.index') }}" class="{{ request()->routeIs('admin.home-menu-items.*') ? 'active' : '' }}">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    <span>Menus page d'accueil</span>
                 </a>
             </li>
             <li>
@@ -272,6 +302,12 @@
                 <a href="{{ route('admin.cms.index') }}" class="{{ request()->routeIs('admin.cms.*') ? 'active' : '' }}">
                     <i class="bi bi-gear-fill"></i>
                     <span>CMS</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.payment-settings.index') }}" class="{{ request()->routeIs('admin.payment-settings.*') ? 'active' : '' }}">
+                    <i class="bi bi-credit-card-2-back"></i>
+                    <span>Configuration Paiements</span>
                 </a>
             </li>
             <li style="margin-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">

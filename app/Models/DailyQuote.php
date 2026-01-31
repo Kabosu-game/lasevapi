@@ -65,5 +65,37 @@ class DailyQuote extends Model
             return $defaultQuotes[2]; // 23:00 - 23:59
         }
     }
+
+    /**
+     * Obtenir les 3 phrases du jour pour une date (pour l'app)
+     */
+    public static function getQuotesForDate(?Carbon $date = null): array
+    {
+        $date = $date ?? Carbon::now();
+        $dailyQuote = self::where('quote_date', $date->format('Y-m-d'))
+            ->where('is_active', true)
+            ->first();
+
+        if (!$dailyQuote) {
+            $dailyQuote = self::where('is_active', true)
+                ->where('quote_date', '<=', $date->format('Y-m-d'))
+                ->orderBy('quote_date', 'desc')
+                ->first();
+        }
+
+        if (!$dailyQuote) {
+            return [
+                'La paix intérieure commence par le sourire de l\'âme.',
+                'Chaque jour est une nouvelle opportunité de grandir.',
+                'La gratitude transforme ce que nous avons en suffisance.',
+            ];
+        }
+
+        return [
+            $dailyQuote->quote_1,
+            $dailyQuote->quote_2,
+            $dailyQuote->quote_3,
+        ];
+    }
 }
 

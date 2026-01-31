@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Validator;
 
 class BlogController extends Controller
 {
-    // Lister tous les blogs avec leurs images
+    // Lister tous les blogs avec leurs images et auteur (pour l'app Flutter)
     public function index(Request $request)
     {
-        $query = Blog::with('media');
+        $query = Blog::with(['media', 'author']);
         
         // Filtrer par catégorie si spécifiée (pour "Le pouvoir secret")
         if ($request->has('category')) {
@@ -27,7 +27,7 @@ class BlogController extends Controller
     // Afficher un blog
     public function show($id)
     {
-        $blog = Blog::with('media')->findOrFail($id);
+        $blog = Blog::with(['media', 'author'])->findOrFail($id);
         return response()->json($blog);
     }
 
