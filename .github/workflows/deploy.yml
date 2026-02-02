@@ -1,0 +1,57 @@
+name: Deploy lasevapi
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy project to VPS
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='storage' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}":"${{ secrets.DEPLOY_PATH }}"
+
+      - name: Run commands on VPS
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+          "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" << 'EOF'
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            echo "📦 Installation des dépendances PHP"
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "📦 Installation des dépendances Node"
+            npm install
+            npm run build
+
+            if [ -f .env ]; then
+              echo "⚙️ Optimisation Laravel"
+              php artisan key:generate --force || true
+              php artisan migrate --force || true
+              php artisan optimize
+              php artisan storage:link || true
+            else
+              echo "⚠️ .env absent, artisan ignoré"
+            fi
+
+            sudo systemctl reload php8.2-fpm || true
+            sudo systemctl reload nginx || true
+
+            echo "✅ Déploiement lasevapi terminé"
+          EOF
