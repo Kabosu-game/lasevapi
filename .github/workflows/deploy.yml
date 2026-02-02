@@ -12,26 +12,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-  
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
       - name: Deploy project to VPS
         run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz --delete \
+          rsync -avz --delete \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='storage' \
-            -e "ssh -o StrictHostKeyChecking=no" \
+            -e "ssh -i ~/.ssh/id_rsa" \
             ./ "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}":"${{ secrets.DEPLOY_PATH }}"
 
       - name: Run commands on VPS
         run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
-          "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" << 'EOF'
+          ssh -i ~/.ssh/id_rsa "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" << 'EOF'
             set -e
-            cd "${{ secrets.DEPLOY_PATH }}"
+            cd ${{ secrets.DEPLOY_PATH }}
 
             echo "📦 Installation des dépendances PHP"
             composer install --no-dev --optimize-autoloader --no-interaction
