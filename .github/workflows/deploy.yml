@@ -1,0 +1,73 @@
+name: Deploy lasevapi
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          
+          # Vérification que la clé est bien formatée
+          head -n 1 ~/.ssh/id_ed25519
+          tail -n 1 ~/.ssh/id_ed25519
+          
+          # Ajoute le serveur aux known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH Connection
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+            "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" \
+            "echo 'SSH Connection OK'"
+
+      - name: Deploy project to VPS
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='storage' \
+            -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
+            ./ "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}":"${{ secrets.DEPLOY_PATH }}"
+
+      - name: Run commands on VPS
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+            "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" << 'EOF'
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            echo "📦 Installation des dépendances PHP"
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "📦 Installation des dépendances Node"
+            npm install
+            npm run build
+
+            if [ -f .env ]; then
+              echo "⚙️ Optimisation Laravel"
+              php artisan key:generate --force || true
+              php artisan migrate --force || true
+              php artisan optimize
+              php artisan storage:link || true
+            else
+              echo "⚠️ .env absent, artisan ignoré"
+            fi
+
+            sudo systemctl reload php8.2-fpm || true
+            sudo systemctl reload nginx || true
+
+            echo "✅ Déploiement lasevapi terminé"
+          EOF
