@@ -16,10 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
         
-        // Configuration CORS pour permettre les requêtes depuis Flutter
-        $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
-        ]);
+        // CORS doit s'exécuter en premier pour tous les appels API (y compris les erreurs 500)
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
         
         $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
             // Si la requête est pour une route admin, rediriger vers admin.login

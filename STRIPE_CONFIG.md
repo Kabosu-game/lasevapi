@@ -49,3 +49,15 @@ Si l'app affiche une erreur lors du paiement :
    ```
 
 4. **Vérifier les logs** : `storage/logs/laravel.log`
+
+## CORS (erreur "blocked by CORS policy")
+
+Si l'app Flutter Web (localhost ou autre origine) ne peut pas appeler l'API :
+
+1. **Vider le cache** sur le serveur :
+   ```bash
+   php artisan config:clear
+   php artisan cache:clear
+   ```
+
+2. Les origines autorisées sont : `localhost`, `127.0.0.1` (tous ports), `*.o-sterebois.fr`
