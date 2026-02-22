@@ -18,11 +18,18 @@ class PublicPaymentController extends Controller
     {
         try {
             $validated = $request->validate([
-                'amount' => 'required|numeric|min:1',
+                'amount' => 'required|numeric|min:50',
                 'currency' => 'required|string|size:3',
-                'email' => 'required|email',
+                'email' => 'nullable|email',
                 'description' => 'nullable|string',
+            ], [
+                'amount.required' => 'Le montant est requis.',
+                'amount.numeric' => 'Le montant doit être un nombre.',
+                'amount.min' => 'Le montant minimum est 50 centimes.',
+                'email.email' => 'L\'email doit être valide.',
             ]);
+
+            $email = $validated['email'] ?? ('client' . time() . '@lasev.com');
 
             // Créer une PaymentIntent via l'API Stripe
             $stripeSecretKey = config('payments.stripe.secret_key');
@@ -42,9 +49,9 @@ class PublicPaymentController extends Controller
                 'form_params' => [
                     'amount' => (int) $validated['amount'],
                     'currency' => strtolower($validated['currency']),
-                    'receipt_email' => $validated['email'],
+                    'receipt_email' => $email,
                     'description' => $validated['description'] ?? 'LASEV Retreat Payment',
-                    'metadata' => ['email' => $validated['email']],
+                    'metadata' => ['email' => $email],
                 ],
                 'verify' => env('APP_ENV') === 'production',
             ]);
@@ -60,9 +67,15 @@ class PublicPaymentController extends Controller
                 'intentId' => $body['id'],
             ]);
         } catch (ValidationException $e) {
+            $msg = implode(' ', $e->validator->errors()->all());
+            Log::warning('Stripe PaymentIntent validation échouée', [
+                'errors' => $e->validator->errors()->toArray(),
+                'received' => $request->only(['amount', 'currency', 'email']),
+            ]);
             return response()->json([
                 'success' => false,
-                'error' => implode(' ', $e->validator->errors()->all()),
+                'error' => $msg,
+                'errors' => $e->validator->errors()->toArray(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('Erreur création Stripe PaymentIntent', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);

@@ -135,6 +135,7 @@ class FoodComfortFormController extends Controller
                     'username' => $userId,
                     'password' => $password,
                 ],
+                'retreat_plan_id' => $retreatPlanId,
             ],
         ], 201);
     }
