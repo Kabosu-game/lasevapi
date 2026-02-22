@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\RetreatPlanController;
 use App\Http\Controllers\Api\FoodComfortFormController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PublicPaymentController;
 use App\Http\Controllers\Api\UserApiController;
 
 // Route d'enregistrement temporaire (onboarding mobile)
@@ -108,3 +109,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user/payments', [UserApiController::class, 'getPayments']);
     Route::get('user/payment-stats', [UserApiController::class, 'getPaymentStats']);
 });
+
+// Routes de paiement publiques (Stripe & PayPal in-app)
+Route::post('create-stripe-payment-intent', [PublicPaymentController::class, 'createStripePaymentIntent']);
+Route::post('capture-stripe-payment', [PublicPaymentController::class, 'captureStripePayment']);
+Route::post('create-paypal-order', [PublicPaymentController::class, 'createPayPalOrder']);
+Route::post('approve-paypal-order', [PublicPaymentController::class, 'approvePayPalOrder']);
+Route::post('record-payment', [PublicPaymentController::class, 'recordPayment']);
+

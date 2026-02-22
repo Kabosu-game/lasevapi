@@ -20,8 +20,8 @@ return [
     'paypal' => [
         'client_id' => env('PAYPAL_CLIENT_ID'),
         'secret' => env('PAYPAL_SECRET'),
-        'mode' => env('PAYPAL_MODE', 'live'), // live ou sandbox
-        'currency' => 'USD',
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // live ou sandbox
+        'currency' => 'EUR',
         'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
     ],
 
