@@ -19,9 +19,18 @@ use App\Http\Controllers\Admin\HomeMenuItemController;
 use App\Http\Controllers\Admin\PaymentAdminController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
 
-// Routes publiques
+// Favicon (évite le 404 sur la page login)
+Route::get('/favicon.ico', function () {
+    $path = public_path('favicon.ico');
+    if (!file_exists($path)) {
+        abort(204);
+    }
+    return response()->file($path, ['Content-Type' => 'image/x-icon']);
+});
+
+// Routes publiques — redirection vers l'admin
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('admin.login');
 });
 
 // Servir les fichiers storage (évite 403 avec php artisan serve sous Windows)
@@ -121,4 +130,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/test-paypal', [PaymentSettingsController::class, 'testPayPal'])->name('test-paypal');
         });
     });
+});
+
+// Fallback : toute URL non reconnue redirige vers la connexion admin (évite la 404)
+Route::fallback(function () {
+    return redirect()->route('admin.login');
 });

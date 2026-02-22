@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class PublicPaymentController extends Controller
 {
@@ -25,8 +26,13 @@ class PublicPaymentController extends Controller
 
             // Créer une PaymentIntent via l'API Stripe
             $stripeSecretKey = config('payments.stripe.secret_key');
-            if (!$stripeSecretKey) {
-                return response()->json(['success' => false, 'error' => 'Stripe not configured'], 500);
+            $stripePublicKey = config('payments.stripe.public_key');
+            if (!$stripeSecretKey || !$stripePublicKey) {
+                Log::warning('Stripe non configuré sur le serveur. Définir STRIPE_SECRET_KEY et STRIPE_PUBLIC_KEY dans .env');
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Paiement non configuré. Contactez l\'administrateur (STRIPE_SECRET_KEY manquant sur le serveur).',
+                ], 503);
             }
 
             // Appel HTTP à Stripe API - Flutter envoie déjà le montant en centimes
@@ -53,11 +59,16 @@ class PublicPaymentController extends Controller
                 'publishableKey' => config('payments.stripe.public_key'),
                 'intentId' => $body['id'],
             ]);
-        } catch (\Exception $e) {
-            Log::error('Erreur création Stripe PaymentIntent', ['error' => $e->getMessage()]);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage(),
+                'error' => implode(' ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur création Stripe PaymentIntent', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'error' => config('app.debug') ? $e->getMessage() : 'Erreur lors de la création du paiement.',
             ], 400);
         }
     }

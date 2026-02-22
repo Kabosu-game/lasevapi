@@ -30,6 +30,22 @@ Après configuration :
 2. Testez un paiement depuis l'app Flutter
 3. Vérifiez les logs : `storage/logs/laravel.log`
 
-## Erreur "Stripe not configured"
+## Erreur 500 / 503 sur create-stripe-payment-intent
 
-Si l'app affiche cette erreur, `STRIPE_SECRET_KEY` n'est pas défini ou est vide dans le `.env` du serveur.
+Si l'app affiche une erreur lors du paiement :
+
+1. **Vérifier le `.env` sur le serveur** (lasevapi.o-sterebois.fr) :
+   ```bash
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PUBLIC_KEY=pk_live_...
+   ```
+
+2. **Redémarrer PHP/Laravel** après modification du `.env`
+
+3. **Vider le cache** :
+   ```bash
+   php artisan config:clear
+   php artisan cache:clear
+   ```
+
+4. **Vérifier les logs** : `storage/logs/laravel.log`
