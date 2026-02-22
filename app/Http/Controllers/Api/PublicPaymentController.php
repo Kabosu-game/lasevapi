@@ -17,19 +17,27 @@ class PublicPaymentController extends Controller
     public function createStripePaymentIntent(Request $request)
     {
         try {
+            // Normaliser les données (email vide -> générer, amount en centimes)
+            $input = $request->all();
+            if (empty(trim((string) ($input['email'] ?? '')))) {
+                $input['email'] = 'client' . time() . '@lasev.com';
+            }
+            $request->merge($input);
+
             $validated = $request->validate([
                 'amount' => 'required|numeric|min:50',
                 'currency' => 'required|string|size:3',
-                'email' => 'nullable|email',
+                'email' => 'required|email',
                 'description' => 'nullable|string',
             ], [
                 'amount.required' => 'Le montant est requis.',
                 'amount.numeric' => 'Le montant doit être un nombre.',
                 'amount.min' => 'Le montant minimum est 50 centimes.',
+                'email.required' => 'L\'email est requis.',
                 'email.email' => 'L\'email doit être valide.',
             ]);
 
-            $email = $validated['email'] ?? ('client' . time() . '@lasev.com');
+            $email = $validated['email'];
 
             // Créer une PaymentIntent via l'API Stripe
             $stripeSecretKey = config('payments.stripe.secret_key');
