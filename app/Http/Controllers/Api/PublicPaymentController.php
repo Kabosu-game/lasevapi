@@ -52,6 +52,7 @@ class PublicPaymentController extends Controller
 
             // Appel HTTP à Stripe API - Flutter envoie déjà le montant en centimes
             $client = new \GuzzleHttp\Client();
+            $verifySsl = env('STRIPE_VERIFY_SSL', env('APP_ENV') === 'production');
             $response = $client->post('https://api.stripe.com/v1/payment_intents', [
                 'auth' => [$stripeSecretKey, ''],
                 'form_params' => [
@@ -61,7 +62,7 @@ class PublicPaymentController extends Controller
                     'description' => $validated['description'] ?? 'LASEV Retreat Payment',
                     'metadata' => ['email' => $email],
                 ],
-                'verify' => env('APP_ENV') === 'production',
+                'verify' => filter_var($verifySsl, FILTER_VALIDATE_BOOLEAN),
             ]);
 
             $body = json_decode($response->getBody(), true);
@@ -85,12 +86,34 @@ class PublicPaymentController extends Controller
                 'error' => $msg,
                 'errors' => $e->validator->errors()->toArray(),
             ], 422);
-        } catch (\Exception $e) {
-            Log::error('Erreur création Stripe PaymentIntent', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $status = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 0;
+            $body = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+            Log::error('Stripe API erreur', [
+                'http_status' => $status,
+                'body' => substr($body, 0, 500),
+                'message' => $e->getMessage(),
+            ]);
+            $hint = $status === 401 ? 'Clé Stripe invalide (vérifier STRIPE_SECRET_KEY)' : null;
+            $hint ??= $status === 402 ? 'Paiement refusé par Stripe' : null;
+            $hint ??= (str_contains($body, 'No such payment_intent') ? 'PaymentIntent introuvable' : null);
             return response()->json([
                 'success' => false,
-                'error' => config('app.debug') ? $e->getMessage() : 'Erreur lors de la création du paiement.',
-            ], 400);
+                'error' => $hint ?? 'Erreur Stripe ('.$status.'). Vérifier configuration.',
+                'code' => 'STRIPE_ERROR',
+            ], 502);
+        } catch (\Throwable $e) {
+            Log::error('Erreur création Stripe PaymentIntent', [
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $msg = config('app.debug') ? $e->getMessage() : 'Erreur paiement: ' . get_class($e);
+            return response()->json([
+                'success' => false,
+                'error' => $msg,
+                'code' => 'PAYMENT_ERROR',
+            ], 500);
         }
     }
 

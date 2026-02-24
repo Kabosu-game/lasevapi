@@ -33,7 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
             $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
-            $payload = ['success' => false, 'error' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'];
+            $errMsg = config('app.debug') ? $e->getMessage() : ('Erreur serveur: ' . class_basename($e));
+            $payload = ['success' => false, 'error' => $errMsg];
             if ($e instanceof \Illuminate\Validation\ValidationException) {
                 $status = 422;
                 $payload['errors'] = $e->errors();
