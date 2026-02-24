@@ -54,7 +54,7 @@ jobs:
 
             echo "📦 Installation des dépendances Node"
             npm install
-            npm run build
+            npm run build 
 
             if [ -f .env ]; then
               echo "⚙️ Optimisation Laravel"
