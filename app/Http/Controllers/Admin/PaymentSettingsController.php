@@ -43,8 +43,9 @@ class PaymentSettingsController extends Controller
     // MISE À JOUR .env
     // -------------------------------------------------------------------------
 
-    public function update(Request $request)
-    {
+  public function update(Request $request)
+{
+    try {
         $request->validate([
             'stripe_secret_key' => 'nullable|string|max:255',
             'stripe_public_key' => 'nullable|string|max:255',
@@ -55,18 +56,11 @@ class PaymentSettingsController extends Controller
 
         $envPath = base_path('.env');
 
-        // FIX: vérifie que le .env est lisible avant de toucher quoi que ce soit
         if (!file_exists($envPath) || !is_readable($envPath)) {
-            return redirect()->route('admin.payment-settings.index')
-                ->with('error', 'Fichier .env introuvable ou non lisible.');
+            return back()->with('error', '.env introuvable ou non lisible.');
         }
 
         $envContent = file_get_contents($envPath);
-
-        if ($envContent === false) {
-            return redirect()->route('admin.payment-settings.index')
-                ->with('error', 'Impossible de lire le fichier .env.');
-        }
 
         $map = [
             'stripe_secret_key' => 'STRIPE_SECRET_KEY',
@@ -81,20 +75,26 @@ class PaymentSettingsController extends Controller
             }
         }
 
-        // paypal_mode toujours mis à jour
         $envContent = $this->updateEnvKey($envContent, 'PAYPAL_MODE', $request->paypal_mode);
 
-        if (file_put_contents($envPath, $envContent) === false) {
-            return redirect()->route('admin.payment-settings.index')
-                ->with('error', 'Impossible d\'écrire dans le fichier .env.');
+        $result = file_put_contents($envPath, $envContent);
+        if ($result === false) {
+            return back()->with('error', 'Impossible d\'écrire dans .env — vérifiez les permissions.');
         }
 
         Artisan::call('config:clear');
-        Log::info('Payment settings updated', ['user_id' => auth()->id()]);
 
         return redirect()->route('admin.payment-settings.index')
-            ->with('success', 'Configuration mise à jour avec succès.');
+            ->with('success', 'Configuration mise à jour.');
+
+    } catch (\Throwable $e) {
+        Log::error('PaymentSettings update error: ' . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+        return back()->with('error', 'Erreur : ' . $e->getMessage());
     }
+}
 
     // -------------------------------------------------------------------------
     // TESTS API
