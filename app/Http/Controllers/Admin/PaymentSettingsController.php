@@ -43,72 +43,79 @@ class PaymentSettingsController extends Controller
     // MISE À JOUR .env
     // -------------------------------------------------------------------------
 
-  public function update(Request $request)
-{
-    try {
-        $request->validate([
-            'stripe_secret_key' => 'nullable|string|max:255',
-            'stripe_public_key' => 'nullable|string|max:255',
-            'paypal_client_id'  => 'nullable|string|max:255',
-            'paypal_secret'     => 'nullable|string|max:255',
-            'paypal_mode'       => 'required|in:live,sandbox',
-        ]);
+    public function update(Request $request)
+    {
+        try {
+            $request->validate([
+                'stripe_secret_key' => 'nullable|string|max:255',
+                'stripe_public_key' => 'nullable|string|max:255',
+                'paypal_client_id'  => 'nullable|string|max:255',
+                'paypal_secret'     => 'nullable|string|max:255',
+                'paypal_mode'       => 'required|in:live,sandbox',
+            ]);
 
-        $envPath = base_path('.env');
+            $envPath = base_path('.env');
 
-        if (!file_exists($envPath) || !is_readable($envPath)) {
-            return back()->with('error', '.env introuvable ou non lisible.');
-        }
-
-        $envContent = file_get_contents($envPath);
-
-        $map = [
-            'stripe_secret_key' => 'STRIPE_SECRET_KEY',
-            'stripe_public_key' => 'STRIPE_PUBLIC_KEY',
-            'paypal_client_id'  => 'PAYPAL_CLIENT_ID',
-            'paypal_secret'     => 'PAYPAL_SECRET',
-        ];
-
-        foreach ($map as $inputKey => $envKey) {
-            if ($request->filled($inputKey)) {
-                $envContent = $this->updateEnvKey($envContent, $envKey, $request->input($inputKey));
+            if (!file_exists($envPath) || !is_readable($envPath)) {
+                return back()->with('error', '.env introuvable ou non lisible.');
             }
+
+            $envContent = file_get_contents($envPath);
+
+            $map = [
+                'stripe_secret_key' => 'STRIPE_SECRET_KEY',
+                'stripe_public_key' => 'STRIPE_PUBLIC_KEY',
+                'paypal_client_id'  => 'PAYPAL_CLIENT_ID',
+                'paypal_secret'     => 'PAYPAL_SECRET',
+            ];
+
+            foreach ($map as $inputKey => $envKey) {
+                if ($request->filled($inputKey)) {
+                    $envContent = $this->updateEnvKey($envContent, $envKey, $request->input($inputKey));
+                }
+            }
+
+            $envContent = $this->updateEnvKey($envContent, 'PAYPAL_MODE', $request->paypal_mode);
+
+            $result = file_put_contents($envPath, $envContent);
+            if ($result === false) {
+                return back()->with('error', 'Impossible d\'écrire dans .env — vérifiez les permissions.');
+            }
+
+            Artisan::call('config:clear');
+
+            return redirect()->route('admin.payment-settings.index')
+                ->with('success', 'Configuration mise à jour.');
+        } catch (\Throwable $e) {
+            Log::error('PaymentSettings update error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return back()->with('error', 'Erreur : ' . $e->getMessage());
         }
-
-        $envContent = $this->updateEnvKey($envContent, 'PAYPAL_MODE', $request->paypal_mode);
-
-        $result = file_put_contents($envPath, $envContent);
-        if ($result === false) {
-            return back()->with('error', 'Impossible d\'écrire dans .env — vérifiez les permissions.');
-        }
-
-        Artisan::call('config:clear');
-
-        return redirect()->route('admin.payment-settings.index')
-            ->with('success', 'Configuration mise à jour.');
-
-    } catch (\Throwable $e) {
-        Log::error('PaymentSettings update error: ' . $e->getMessage(), [
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
-        return back()->with('error', 'Erreur : ' . $e->getMessage());
     }
-}
 
     // -------------------------------------------------------------------------
     // TESTS API
     // -------------------------------------------------------------------------
-
     public function testStripe()
     {
         try {
-            $stripeKey = config('payments.stripe.secret_key');
+            // FIX: lit directement depuis .env pour avoir la valeur fraîche
+            $stripeKey = env('STRIPE_SECRET_KEY') ?: config('payments.stripe.secret_key');
 
             if (empty($stripeKey)) {
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'Clé Stripe secrète manquante dans la config.',
+                    'message' => 'Clé Stripe secrète manquante. Vérifiez STRIPE_SECRET_KEY dans le .env.',
+                ], 400);
+            }
+
+            // FIX: vérifie le format avant d'appeler l'API
+            if (!str_starts_with($stripeKey, 'sk_live_') && !str_starts_with($stripeKey, 'sk_test_')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Format de clé invalide. Elle doit commencer par sk_live_ ou sk_test_.',
                 ], 400);
             }
 
@@ -119,19 +126,19 @@ class PaymentSettingsController extends Controller
                 'status'     => 'success',
                 'message'    => 'Connexion Stripe réussie',
                 'account_id' => $account->id,
-                'email'      => $account->email    ?? 'N/A',
-                'country'    => $account->country  ?? 'N/A',
+                'email'      => $account->email   ?? 'N/A',
+                'country'    => $account->country ?? 'N/A',
             ]);
         } catch (\Stripe\Exception\AuthenticationException $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Clé Stripe invalide : ' . $e->getMessage(),
+                'message' => 'Clé Stripe rejetée par l\'API : ' . $e->getMessage(),
             ], 400);
         } catch (\Exception $e) {
             Log::error('Stripe test error: ' . $e->getMessage());
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Erreur Stripe : ' . $e->getMessage(),
+                'message' => 'Erreur : ' . $e->getMessage(),
             ], 500);
         }
     }
