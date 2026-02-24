@@ -321,5 +321,18 @@
             btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Tester la connexion PayPal';
         });
     });
+    document.getElementById('paymentSettingsForm').addEventListener('submit', function() {
+    const fields = [
+        'stripeSecretKey', 'stripePublicKey',
+        'paypalClientId', 'paypalSecret'
+    ];
+    fields.forEach(id => {
+        const input = document.getElementById(id);
+        // Si la valeur contient des étoiles = non modifiée → on vide
+        if (input.value.includes('*')) {
+            input.value = '';
+        }
+    });
+});
 </script>
 @endsection
