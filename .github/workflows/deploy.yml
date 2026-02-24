@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -17,12 +16,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          
-          # Vérification que la clé est bien formatée
           head -n 1 ~/.ssh/id_ed25519
           tail -n 1 ~/.ssh/id_ed25519
-          
-          # Ajoute le serveur aux known_hosts
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Test SSH Connection
@@ -42,6 +37,12 @@ jobs:
             -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
             ./ "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}":"${{ secrets.DEPLOY_PATH }}"
 
+      - name: Fix permissions on VPS
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+            "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" \
+            "chown -R nginx:nginx ${{ secrets.DEPLOY_PATH }} && chmod -R 755 ${{ secrets.DEPLOY_PATH }} && chmod -R 775 ${{ secrets.DEPLOY_PATH }}/storage && chmod -R 775 ${{ secrets.DEPLOY_PATH }}/bootstrap/cache && ([ -f ${{ secrets.DEPLOY_PATH }}/.env ] && chmod 644 ${{ secrets.DEPLOY_PATH }}/.env || true)"
+
       - name: Run commands on VPS
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
@@ -54,7 +55,7 @@ jobs:
 
             echo "📦 Installation des dépendances Node"
             npm install
-            npm run build 
+            npm run build
 
             if [ -f .env ]; then
               echo "⚙️ Optimisation Laravel"
@@ -66,7 +67,7 @@ jobs:
               echo "⚠️ .env absent, artisan ignoré"
             fi
 
-            sudo systemctl reload php8.2-fpm || true
+            sudo systemctl reload php-fpm || true
             sudo systemctl reload nginx || true
 
             echo "✅ Déploiement lasevapi terminé"
