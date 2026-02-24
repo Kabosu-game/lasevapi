@@ -41,7 +41,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
             "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" \
-            "chown -R nginx:nginx ${{ secrets.DEPLOY_PATH }} && chmod -R 755 ${{ secrets.DEPLOY_PATH }} && chmod -R 775 ${{ secrets.DEPLOY_PATH }}/storage && chmod -R 775 ${{ secrets.DEPLOY_PATH }}/bootstrap/cache && ([ -f ${{ secrets.DEPLOY_PATH }}/.env ] && chmod 644 ${{ secrets.DEPLOY_PATH }}/.env || true)"
+            "chown -R apache:apache ${{ secrets.DEPLOY_PATH }} && chmod -R 755 ${{ secrets.DEPLOY_PATH }} && chmod -R 775 ${{ secrets.DEPLOY_PATH }}/storage && chmod -R 775 ${{ secrets.DEPLOY_PATH }}/bootstrap/cache && ([ -f ${{ secrets.DEPLOY_PATH }}/.env ] && chmod 644 ${{ secrets.DEPLOY_PATH }}/.env || true)"
 
       - name: Run commands on VPS
         run: |
