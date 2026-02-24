@@ -124,6 +124,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Configuration des Paiements
         Route::prefix('payment-settings')->name('payment-settings.')->group(function () {
+            Route::get('/diagnostic', [PaymentSettingsController::class, 'diagnostic'])->name('diagnostic');
             Route::get('/', [PaymentSettingsController::class, 'index'])->name('index');
             Route::post('/', [PaymentSettingsController::class, 'update'])->name('update');
             Route::post('/test-stripe', [PaymentSettingsController::class, 'testStripe'])->name('test-stripe');

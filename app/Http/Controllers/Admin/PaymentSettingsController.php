@@ -8,17 +8,122 @@ use Illuminate\Http\Request;
 class PaymentSettingsController extends Controller
 {
     /**
+     * Diagnostic : identifier l'erreur en production (à appeler si /payment-settings retourne 500)
+     * GET /admin/payment-settings/diagnostic
+     */
+    public function diagnostic(Request $request)
+    {
+        $steps = [];
+        try {
+            $steps[] = ['step' => 'config', 'status' => 'ok', 'message' => 'Config chargée'];
+
+            // Test 1: config existante
+            $configPayments = config('payments');
+            if (!is_array($configPayments)) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'config("payments") non trouvée ou invalide',
+                    'steps' => $steps,
+                    'hint' => 'Vérifiez que config/payments.php existe sur le serveur',
+                ], 200);
+            }
+
+            $steps[] = ['step' => 'payments_config', 'status' => 'ok'];
+
+            // Test 2: valeurs (config ou env selon config:cache)
+            $stripe = $configPayments['stripe'] ?? [];
+            $paypal = $configPayments['paypal'] ?? [];
+            $stripeSecretKey = $stripe['secret_key'] ?? env('STRIPE_SECRET_KEY') ?? '';
+            $stripePublicKey = $stripe['public_key'] ?? env('STRIPE_PUBLIC_KEY') ?? '';
+            $paypalClientId = $paypal['client_id'] ?? env('PAYPAL_CLIENT_ID') ?? '';
+            $paypalSecret = $paypal['secret'] ?? env('PAYPAL_SECRET') ?? '';
+            $paypalMode = $paypal['mode'] ?? env('PAYPAL_MODE') ?? 'sandbox';
+
+            if (!is_string($paypalMode)) {
+                $paypalMode = 'sandbox';
+            }
+            if (!in_array($paypalMode, ['live', 'sandbox'], true)) {
+                $paypalMode = 'sandbox';
+            }
+
+            $steps[] = ['step' => 'values', 'status' => 'ok'];
+
+            // Test 3: maskKey
+            $stripeSecretKeyMasked = $this->maskKey($stripeSecretKey);
+            $stripePublicKeyMasked = $this->maskKey($stripePublicKey);
+            $paypalClientIdMasked = $this->maskKey($paypalClientId);
+            $paypalSecretMasked = $this->maskKey($paypalSecret);
+
+            $steps[] = ['step' => 'maskKey', 'status' => 'ok'];
+
+            // Test 4: vue existe
+            $viewPath = resource_path('views/admin/payment-settings/index.blade.php');
+            if (!file_exists($viewPath)) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'Vue non trouvée',
+                    'path' => $viewPath,
+                    'steps' => $steps,
+                    'hint' => 'Vérifiez le déploiement (sensibilité à la casse sur Linux)',
+                ], 200);
+            }
+
+            $steps[] = ['step' => 'view_file', 'status' => 'ok'];
+
+            // Test 5: rendu de la vue
+            $view = view('admin.payment-settings.index', [
+                'paypalMode' => $paypalMode,
+                'stripeSecretKeyMasked' => $stripeSecretKeyMasked,
+                'stripePublicKeyMasked' => $stripePublicKeyMasked,
+                'paypalClientIdMasked' => $paypalClientIdMasked,
+                'paypalSecretMasked' => $paypalSecretMasked,
+            ]);
+            $html = $view->render();
+
+            $steps[] = ['step' => 'view_render', 'status' => 'ok'];
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'Tous les tests passent - la page devrait fonctionner',
+                'steps' => $steps,
+                'php_version' => PHP_VERSION,
+                'config_cached' => app()->configurationIsCached(),
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('PaymentSettings diagnostic error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json([
+                'ok' => false,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'steps' => $steps,
+                'class' => get_class($e),
+            ], 200);
+        }
+    }
+
+    /**
      * Afficher la page de configuration des paiements
      */
     public function index()
     {
         try {
-            // Récupérer les configurations via config (compatible config:cache) ou env en secours
-            $stripeSecretKey = config('payments.stripe.secret_key') ?? env('STRIPE_SECRET_KEY') ?? '';
-            $stripePublicKey = config('payments.stripe.public_key') ?? env('STRIPE_PUBLIC_KEY') ?? '';
-            $paypalClientId = config('payments.paypal.client_id') ?? env('PAYPAL_CLIENT_ID') ?? '';
-            $paypalSecret = config('payments.paypal.secret') ?? env('PAYPAL_SECRET') ?? '';
-            $paypalMode = config('payments.paypal.mode') ?? env('PAYPAL_MODE') ?? 'sandbox';
+            $configPayments = config('payments');
+            if (!is_array($configPayments)) {
+                throw new \RuntimeException('config("payments") non trouvée. Exécutez: php artisan config:clear');
+            }
+
+            $stripe = $configPayments['stripe'] ?? [];
+            $paypal = $configPayments['paypal'] ?? [];
+            $stripeSecretKey = $stripe['secret_key'] ?? env('STRIPE_SECRET_KEY') ?? '';
+            $stripePublicKey = $stripe['public_key'] ?? env('STRIPE_PUBLIC_KEY') ?? '';
+            $paypalClientId = $paypal['client_id'] ?? env('PAYPAL_CLIENT_ID') ?? '';
+            $paypalSecret = $paypal['secret'] ?? env('PAYPAL_SECRET') ?? '';
+            $paypalMode = $paypal['mode'] ?? env('PAYPAL_MODE') ?? 'sandbox';
 
             if (!is_string($paypalMode) || !in_array($paypalMode, ['live', 'sandbox'], true)) {
                 $paypalMode = 'sandbox';

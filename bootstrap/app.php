@@ -29,6 +29,18 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, $request) {
+            // Pour les routes admin payment-settings en erreur, proposer le diagnostic
+            if ($request->is('admin/payment-settings') && !$request->is('admin/payment-settings/diagnostic')) {
+                \Log::error('PaymentSettings error', [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+                $diagnosticUrl = url('/admin/payment-settings/diagnostic');
+                $msg = config('app.debug') ? htmlspecialchars($e->getMessage()) : '';
+                $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Erreur</title></head><body style="font-family:sans-serif;padding:2rem"><h1>Erreur 500 - Configuration Paiements</h1><p>Connectez-vous à l\'admin puis ouvrez le <a href="' . htmlspecialchars($diagnosticUrl) . '">diagnostic</a> pour voir l\'erreur exacte.</p>' . ($msg ? '<pre style="background:#f5f5f5;padding:1rem">' . $msg . '</pre>' : '') . '</body></html>';
+                return response($html, 500)->header('Content-Type', 'text/html; charset=UTF-8');
+            }
             if (!$request->is('api/*')) {
                 return null;
             }
