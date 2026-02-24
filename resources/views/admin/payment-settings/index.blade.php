@@ -31,7 +31,7 @@
     <!-- Stripe Configuration -->
     <div class="card mb-4">
         <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="bi bi-credit-card"></i> Configuration Stripe</h5>
+            <h5 class="mb-0"><i class="bi bi-credit-card"></i> Configuration Stripereeee</h5>
         </div>
         <div class="card-body">
             <div class="row mb-3">
