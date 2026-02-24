@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -17,12 +16,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          
-          # Vérification que la clé est bien formatée
-          head -n 1 ~/.ssh/id_ed25519
-          tail -n 1 ~/.ssh/id_ed25519
-          
-          # Ajoute le serveur aux known_hosts
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Test SSH Connection
@@ -47,10 +40,34 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
             "${{ secrets.SERVER_USER }}"@"${{ secrets.SERVER_IP }}" << 'EOF'
             set -e
+
+            # -------------------------------------------------------
+            # PHP 8.4 : installation si absente
+            # -------------------------------------------------------
+            if ! php8.4 --version &>/dev/null; then
+              echo "🔧 Installation de PHP 8.4..."
+              sudo apt-get update -qq
+              sudo apt-get install -y software-properties-common
+              sudo add-apt-repository -y ppa:ondrej/php
+              sudo apt-get update -qq
+              sudo apt-get install -y php8.4 php8.4-fpm php8.4-cli \
+                php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip \
+                php8.4-bcmath php8.4-tokenizer php8.4-mysql
+              echo "✅ PHP 8.4 installé"
+            else
+              echo "✅ PHP 8.4 déjà présent"
+            fi
+
+            # Active PHP 8.4 par défaut
+            sudo update-alternatives --set php /usr/bin/php8.4
+
+            # -------------------------------------------------------
+            # Déploiement Laravel
+            # -------------------------------------------------------
             cd ${{ secrets.DEPLOY_PATH }}
 
             echo "📦 Installation des dépendances PHP"
-            composer install --no-dev --optimize-autoloader --no-interaction
+            php8.4 $(which composer) install --no-dev --optimize-autoloader --no-interaction
 
             echo "📦 Installation des dépendances Node"
             npm install
@@ -58,15 +75,16 @@ jobs:
 
             if [ -f .env ]; then
               echo "⚙️ Optimisation Laravel"
-              php artisan key:generate --force || true
-              php artisan migrate --force || true
-              php artisan optimize
-              php artisan storage:link || true
+              php8.4 artisan key:generate --force || true
+              php8.4 artisan migrate --force || true
+              php8.4 artisan optimize
+              php8.4 artisan storage:link || true
             else
               echo "⚠️ .env absent, artisan ignoré"
             fi
 
-            sudo systemctl reload php8.2-fpm || true
+            # Reload FPM selon la version active
+            sudo systemctl reload php8.4-fpm || sudo systemctl reload php8.2-fpm || true
             sudo systemctl reload nginx || true
 
             echo "✅ Déploiement lasevapi terminé"
