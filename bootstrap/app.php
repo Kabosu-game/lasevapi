@@ -28,5 +28,22 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Throwable $e, $request) {
+            if (!$request->is('api/*')) {
+                return null;
+            }
+            $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+            $payload = ['success' => false, 'error' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'];
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                $status = 422;
+                $payload['errors'] = $e->errors();
+                $payload['error'] = implode(' ', $e->validator->errors()->all());
+            }
+            $response = response()->json($payload, $status);
+            $origin = $request->header('Origin') ?: '*';
+            $response->headers->set('Access-Control-Allow-Origin', $origin);
+            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+            return $response;
+        });
     })->create();
