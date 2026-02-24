@@ -12,30 +12,33 @@ class PaymentSettingsController extends Controller
      */
     public function index()
     {
-        // Récupérer les configurations actuelles
-        $stripeSecretKey = env('STRIPE_SECRET_KEY', '');
-        $stripePublicKey = env('STRIPE_PUBLIC_KEY', '');
-        $paypalClientId = env('PAYPAL_CLIENT_ID', '');
-        $paypalSecret = env('PAYPAL_SECRET', '');
-        $paypalMode = env('PAYPAL_MODE', 'live');
+        try {
+            // Récupérer les configurations via config (compatible config:cache) ou env en secours
+            $stripeSecretKey = config('payments.stripe.secret_key') ?? env('STRIPE_SECRET_KEY') ?? '';
+            $stripePublicKey = config('payments.stripe.public_key') ?? env('STRIPE_PUBLIC_KEY') ?? '';
+            $paypalClientId = config('payments.paypal.client_id') ?? env('PAYPAL_CLIENT_ID') ?? '';
+            $paypalSecret = config('payments.paypal.secret') ?? env('PAYPAL_SECRET') ?? '';
+            $paypalMode = config('payments.paypal.mode') ?? env('PAYPAL_MODE') ?? 'sandbox';
 
-        // Masquer partiellement les clés pour la sécurité
-        $stripeSecretKeyMasked = $this->maskKey($stripeSecretKey, 'sk_');
-        $stripePublicKeyMasked = $this->maskKey($stripePublicKey, 'pk_');
-        $paypalClientIdMasked = $this->maskKey($paypalClientId);
-        $paypalSecretMasked = $this->maskKey($paypalSecret);
+            if (!is_string($paypalMode) || !in_array($paypalMode, ['live', 'sandbox'], true)) {
+                $paypalMode = 'sandbox';
+            }
 
-        return view('admin.payment-settings.index', compact(
-            'stripeSecretKey',
-            'stripePublicKey',
-            'paypalClientId',
-            'paypalSecret',
-            'paypalMode',
-            'stripeSecretKeyMasked',
-            'stripePublicKeyMasked',
-            'paypalClientIdMasked',
-            'paypalSecretMasked'
-        ));
+            return view('admin.payment-settings.index', [
+                'paypalMode' => $paypalMode,
+                'stripeSecretKeyMasked' => $this->maskKey($stripeSecretKey),
+                'stripePublicKeyMasked' => $this->maskKey($stripePublicKey),
+                'paypalClientIdMasked' => $this->maskKey($paypalClientId),
+                'paypalSecretMasked' => $this->maskKey($paypalSecret),
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('PaymentSettings index error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -180,15 +183,16 @@ class PaymentSettingsController extends Controller
     /**
      * Masquer une clé pour l'affichage
      */
-    private function maskKey($key, $prefix = '')
+    private function maskKey($key)
     {
-        if (empty($key)) {
+        if ($key === null || $key === '') {
             return '';
         }
 
+        $key = (string) $key;
         $length = strlen($key);
-        $visible = min(10, max(3, intdiv($length, 4)));
+        $visible = min(10, max(3, (int) floor($length / 4)));
         
-        return substr($key, 0, $visible) . str_repeat('*', $length - $visible);
+        return substr($key, 0, $visible) . str_repeat('*', max(0, $length - $visible));
     }
 }
