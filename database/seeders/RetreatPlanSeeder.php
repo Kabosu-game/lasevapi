@@ -14,8 +14,10 @@ class RetreatPlanSeeder extends Seeder
      */
     public function run(): void
     {
-        // Supprimer les anciens plans pour éviter les doublons
+        // Désactiver les contraintes FK le temps du truncate (payments référence retreat_plans)
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('retreat_plans')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         // Les 3 plans de retraite avec les prix configurés
         $retreatPlans = [
