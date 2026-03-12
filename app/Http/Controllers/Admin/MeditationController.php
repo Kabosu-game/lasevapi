@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Meditation;
 use App\Models\Media;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class MeditationController extends Controller
@@ -32,6 +33,32 @@ class MeditationController extends Controller
      */
     public function store(Request $request)
     {
+        $uploadedFile = $request->file('media_file');
+
+        // Détecter l'échec d'upload PHP (fichier trop gros, post_max_size, etc.) AVANT la validation
+        if ($request->isMethod('post') && $request->hasAny(['media_title', 'title'])) {
+            if (!$uploadedFile) {
+                return back()->withInput()->with('error',
+                    'Aucun fichier reçu. Vérifiez : 1) Le formulaire a bien enctype="multipart/form-data". ' .
+                    '2) Le fichier ne dépasse pas la limite PHP (php.ini : upload_max_filesize et post_max_size à 100M ou plus).'
+                );
+            }
+            if (!$uploadedFile->isValid()) {
+                $err = $uploadedFile->getError();
+                $messages = [
+                    \UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux : limite PHP (upload_max_filesize) dépassée. Augmentez-la dans php.ini (ex. 100M) puis redémarrez Apache.',
+                    \UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la taille maximale autorisée par le formulaire.',
+                    \UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement envoyé. Réessayez.',
+                    \UPLOAD_ERR_NO_FILE => 'Aucun fichier reçu.',
+                    \UPLOAD_ERR_NO_TMP_DIR => 'Erreur serveur : dossier temporaire manquant.',
+                    \UPLOAD_ERR_CANT_WRITE => 'Erreur serveur : impossible d\'écrire le fichier sur le disque.',
+                    \UPLOAD_ERR_EXTENSION => 'Une extension PHP a bloqué l\'upload.',
+                ];
+                $msg = $messages[$err] ?? 'Erreur d\'upload (code ' . $err . ').';
+                return back()->withInput()->with('error', $msg);
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:meditations,slug',
@@ -39,31 +66,34 @@ class MeditationController extends Controller
             'duration' => 'nullable|integer',
             'media_title' => 'required|string|max:255',
             'media_slug' => 'nullable|string|max:255|unique:media,slug',
-            'media_file' => 'required|file|mimes:mp3,mp4,m4a,mov,avi,wav|max:102400', // 100MB max
+            'media_file' => 'required|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:102400', // 100MB max
             'media_type' => 'required|in:audio,video',
             'media_duration' => 'nullable|integer',
+        ], [
+            'media_file.required' => 'Veuillez sélectionner un fichier audio ou vidéo.',
+            'media_file.file' => 'Le fichier média n\'a pas pu être reçu. Vérifiez enctype="multipart/form-data" et les limites PHP (upload_max_filesize, post_max_size).',
+            'media_file.uploaded' => 'L\'upload du fichier a échoué. Vérifiez la taille (max 100 Mo) et les limites dans php.ini.',
+            'media_file.mimes' => 'Formats acceptés : mp3, mp4, m4a, mov, avi, wav, ogg, oga.',
+            'media_file.max' => 'Le fichier ne doit pas dépasser 100 Mo. Augmentez upload_max_filesize et post_max_size dans php.ini (100M).',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
-        // Gérer l'upload du fichier
         $file = $request->file('media_file');
-        $mediaType = $request->media_type; // 'audio' ou 'video'
-        
-        // Créer le répertoire de stockage s'il n'existe pas
-        $directory = $mediaType === 'video' ? 'storage/videos/meditations' : 'storage/audios/meditations';
-        if (!file_exists(public_path($directory))) {
-            mkdir(public_path($directory), 0755, true);
+        $mediaType = $request->media_type;
+
+        try {
+            $directory = $mediaType === 'video' ? 'videos/meditations' : 'audios/meditations';
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+            $storedPath = $file->storeAs($directory, $fileName, 'public');
+            $filePath = 'storage/' . $storedPath;
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Le fichier média n\'a pas pu être enregistré : ' . $e->getMessage());
         }
-        
-        // Générer un nom de fichier unique
-        $fileName = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
-        $filePath = $directory . '/' . $fileName;
-        
-        // Déplacer le fichier
-        $file->move(public_path($directory), $fileName);
 
         $meditation = Meditation::create($request->only(['title', 'slug', 'description', 'duration']));
 
@@ -110,7 +140,7 @@ class MeditationController extends Controller
             'duration' => 'nullable|integer',
             'media_title' => 'sometimes|required|string|max:255',
             'media_slug' => 'nullable|string|max:255|unique:media,slug,' . ($meditation->media->id ?? 'NULL'),
-            'media_file' => 'sometimes|file|mimes:mp3,mp4,m4a,mov,avi,wav|max:102400', // 100MB max
+            'media_file' => 'sometimes|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:102400', // 100MB max
             'media_type' => 'sometimes|required|in:audio,video',
             'media_duration' => 'nullable|integer',
         ]);
@@ -127,34 +157,34 @@ class MeditationController extends Controller
                 'slug' => $request->media_slug ?? $meditation->media->slug,
                 'duration' => $request->media_duration ?? $meditation->media->duration,
             ];
-            
-            // Si un nouveau fichier est uploadé
+
             if ($request->hasFile('media_file')) {
                 $file = $request->file('media_file');
                 $mediaType = $request->media_type ?? $meditation->media->media_type;
-                
-                // Supprimer l'ancien fichier
-                if ($meditation->media->file_path && file_exists(public_path($meditation->media->file_path))) {
-                    unlink(public_path($meditation->media->file_path));
+
+                try {
+                    $oldPath = $meditation->media->file_path;
+                    if ($oldPath && str_starts_with($oldPath, 'storage/')) {
+                        $storagePath = str_replace('storage/', '', $oldPath);
+                        if (Storage::disk('public')->exists($storagePath)) {
+                            Storage::disk('public')->delete($storagePath);
+                        }
+                    } elseif ($oldPath && file_exists(public_path($oldPath))) {
+                        @unlink(public_path($oldPath));
+                    }
+
+                    $directory = $mediaType === 'video' ? 'videos/meditations' : 'audios/meditations';
+                    $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+                    $storedPath = $file->storeAs($directory, $fileName, 'public');
+                    $updateData['file_path'] = 'storage/' . $storedPath;
+                    $updateData['media_type'] = $mediaType;
+                } catch (\Throwable $e) {
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Le fichier média n\'a pas pu être enregistré : ' . $e->getMessage());
                 }
-                
-                // Créer le répertoire de stockage s'il n'existe pas
-                $directory = $mediaType === 'video' ? 'storage/videos/meditations' : 'storage/audios/meditations';
-                if (!file_exists(public_path($directory))) {
-                    mkdir(public_path($directory), 0755, true);
-                }
-                
-                // Générer un nom de fichier unique
-                $fileName = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
-                $filePath = $directory . '/' . $fileName;
-                
-                // Déplacer le fichier
-                $file->move(public_path($directory), $fileName);
-                
-                $updateData['file_path'] = $filePath;
-                $updateData['media_type'] = $mediaType;
             }
-            
+
             $meditation->media->update($updateData);
         }
 

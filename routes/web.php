@@ -56,6 +56,68 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AdminAuthController::class, 'login']);
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
+    // Diagnostic payment-settings (accessible sans auth pour déboguer les erreurs 500)
+    Route::get('/payment-settings/diagnostic', [PaymentSettingsController::class, 'diagnostic'])->name('payment-settings.diagnostic');
+
+    // Diagnostic limites PHP pour l'upload de médias (sans auth)
+    Route::get('/upload-limits', function () {
+        $uploadMax = ini_get('upload_max_filesize');
+        $postMax = ini_get('post_max_size');
+        $loadedIni = php_ini_loaded_file();
+        $bytes = function ($val) {
+            $val = trim($val);
+            $unit = strtoupper(substr($val, -1));
+            $num = (int) $val;
+            if ($unit === 'G') return $num * 1024 * 1024 * 1024;
+            if ($unit === 'M') return $num * 1024 * 1024;
+            if ($unit === 'K') return $num * 1024;
+            return (int) $val;
+        };
+        $uploadBytes = $bytes($uploadMax);
+        $postBytes = $bytes($postMax);
+        $ok = $uploadBytes >= 100 * 1024 * 1024 && $postBytes >= 100 * 1024 * 1024;
+        return response()->json([
+            'upload_max_filesize' => $uploadMax,
+            'post_max_size' => $postMax,
+            'upload_max_bytes' => $uploadBytes,
+            'post_max_bytes' => $postBytes,
+            'php_ini_loaded_file' => $loadedIni ?: '(aucun fichier chargé)',
+            'ok' => $ok,
+            'message' => $ok
+                ? 'Les limites sont suffisantes pour des fichiers jusqu\'à 100 Mo.'
+                : 'Modifiez le fichier php.ini indiqué ci-dessus (php_ini_loaded_file), mettez upload_max_filesize = 100M et post_max_size = 100M, puis redémarrez Apache (WAMP → Redémarrer tous les services). Si vous avez modifié un autre fichier, c\'est normal que ça ne change pas.',
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    })->name('upload-limits');
+
+    // Même diagnostic en HTML (plus lisible)
+    Route::get('/upload-limits-info', function () {
+        $uploadMax = ini_get('upload_max_filesize');
+        $postMax = ini_get('post_max_size');
+        $loadedIni = php_ini_loaded_file() ?: '(aucun)';
+        $bytes = function ($val) {
+            $val = trim($val);
+            $u = strtoupper(substr($val, -1));
+            $n = (int) $val;
+            if ($u === 'G') return $n * 1024 * 1024 * 1024;
+            if ($u === 'M') return $n * 1024 * 1024;
+            if ($u === 'K') return $n * 1024;
+            return (int) $val;
+        };
+        $ok = $bytes($uploadMax) >= 100*1024*1024 && $bytes($postMax) >= 100*1024*1024;
+        $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Limites PHP</title></head><body style="font-family:sans-serif;margin:2rem;">';
+        $html .= '<h1>Diagnostic upload (médias)</h1>';
+        $html .= '<p><strong>Fichier php.ini utilisé par Apache :</strong><br><code style="background:#eee;padding:4px;">' . htmlspecialchars($loadedIni) . '</code></p>';
+        $html .= '<p><strong>upload_max_filesize</strong> = ' . htmlspecialchars($uploadMax) . '</p>';
+        $html .= '<p><strong>post_max_size</strong> = ' . htmlspecialchars($postMax) . '</p>';
+        if (!$ok) {
+            $html .= '<p style="color:red;"><strong>Ces valeurs sont trop basses.</strong> Ouvrez le fichier indiqué ci-dessus dans un éditeur, cherchez <code>upload_max_filesize</code> et <code>post_max_size</code>, mettez-les à <code>100M</code>, enregistrez, puis WAMP → Redémarrer tous les services.</p>';
+        } else {
+            $html .= '<p style="color:green;">Les limites sont suffisantes (≥ 100 Mo).</p>';
+        }
+        $html .= '</body></html>';
+        return response($html)->header('Content-Type', 'text/html; charset=utf-8');
+    })->name('upload-limits-info');
+
     // Routes protégées par authentification admin
     Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -124,7 +186,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Configuration des Paiements
         Route::prefix('payment-settings')->name('payment-settings.')->group(function () {
-            Route::get('/diagnostic', [PaymentSettingsController::class, 'diagnostic'])->name('diagnostic');
             Route::get('/', [PaymentSettingsController::class, 'index'])->name('index');
             Route::post('/', [PaymentSettingsController::class, 'update'])->name('update');
             Route::post('/test-stripe', [PaymentSettingsController::class, 'testStripe'])->name('test-stripe');

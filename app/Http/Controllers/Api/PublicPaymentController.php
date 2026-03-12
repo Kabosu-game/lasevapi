@@ -94,8 +94,9 @@ class PublicPaymentController extends Controller
                 'body' => substr($body, 0, 500),
                 'message' => $e->getMessage(),
             ]);
-            $hint = $status === 401 ? 'Clé Stripe invalide (vérifier STRIPE_SECRET_KEY)' : null;
+            $hint = $status === 401 ? 'Clé Stripe invalide ou révoquée. Régénérer dans Stripe Dashboard.' : null;
             $hint ??= $status === 402 ? 'Paiement refusé par Stripe' : null;
+            $hint ??= $status === 403 ? 'Clé Stripe sans permission (403). Vérifier : 1) Clé secrète sk_live_ ou sk_test_ 2) Compte Stripe actif 3) Clé non restreinte ou avec droit "Payment Intents"' : null;
             $hint ??= (str_contains($body, 'No such payment_intent') ? 'PaymentIntent introuvable' : null);
             return response()->json([
                 'success' => false,
