@@ -37,12 +37,31 @@ Route::get('/', function () {
 // Utiliser /serve-storage/... pour que la requête passe par Laravel
 Route::get('/serve-storage/{path}', function (string $path) {
     $path = str_replace('..', '', $path);
+    // Enlever le préfixe "storage/" si présent (chemin relatif au disque public)
+    if (preg_match('#^storage/#', $path)) {
+        $path = substr($path, 8);
+    }
     if (!Storage::disk('public')->exists($path)) {
         abort(404);
     }
     $fullPath = Storage::disk('public')->path($path);
-    $mimeType = mime_content_type($fullPath) ?: 'application/octet-stream';
-    return response()->file($fullPath, ['Content-Type' => $mimeType]);
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $mimeTypes = [
+        'mp3' => 'audio/mpeg',
+        'm4a' => 'audio/mp4',
+        'ogg' => 'audio/ogg',
+        'oga' => 'audio/ogg',
+        'wav' => 'audio/wav',
+        'mp4' => 'video/mp4',
+        'webm' => 'video/webm',
+        'mov' => 'video/quicktime',
+    ];
+    $mimeType = $mimeTypes[$ext] ?? mime_content_type($fullPath) ?: 'application/octet-stream';
+    $response = response()->file($fullPath, ['Content-Type' => $mimeType]);
+    // CORS : permettre à l'app Flutter (autre origine) de charger l'audio
+    $response->header('Access-Control-Allow-Origin', '*');
+    $response->header('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+    return $response;
 })->where('path', '.*')->name('storage.serve');
 
 // Route de redirection pour le middleware auth par défaut
