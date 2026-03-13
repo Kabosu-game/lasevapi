@@ -9,7 +9,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.events.store') }}" method="POST">
+        <form action="{{ route('admin.events.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
             <div class="mb-3">
@@ -88,6 +88,16 @@
                         @enderror
                     </div>
                 </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Galerie d'images</label>
+                <input type="file" class="form-control @error('gallery_images.*') is-invalid @enderror"
+                       name="gallery_images[]" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" multiple>
+                @error('gallery_images.*')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+                <small class="form-text text-muted">Vous pouvez sélectionner plusieurs images (JPG, PNG, GIF, WebP — max 5 Mo chacune). Elles s'afficheront dans l'app dans la section Galerie de l'événement.</small>
             </div>
 
             <div class="d-flex justify-content-end gap-2">

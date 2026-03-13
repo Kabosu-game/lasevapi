@@ -16,8 +16,14 @@ class BlogController extends Controller
         $query = Blog::with(['media', 'author']);
         
         // Filtrer par catégorie si spécifiée (pour "Le pouvoir secret")
-        if ($request->has('category')) {
-            $query->where('category', $request->category);
+        // Accepter pouvoir-secret, pouvoir_secret, Pouvoir secret, etc.
+        if ($request->has('category') && trim($request->category) !== '') {
+            $requested = preg_replace('/[\s_]+/', '-', strtolower(trim($request->category)));
+            $query->where(function ($q) use ($requested) {
+                $normalized = "LOWER(REPLACE(REPLACE(TRIM(COALESCE(category, '')), ' ', '-'), '_', '-'))";
+                $q->whereRaw("$normalized = ?", [$requested])
+                    ->orWhereRaw("$normalized = ?", ['le-' . $requested]);
+            });
         }
         
         $blogs = $query->latest()->get();

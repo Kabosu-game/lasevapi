@@ -76,6 +76,21 @@
                         <th>Modifié le</th>
                         <td>{{ $event->updated_at->format('d/m/Y à H:i') }}</td>
                     </tr>
+                    <tr>
+                        <th>Galerie</th>
+                        <td>
+                            @if($event->media && $event->media->isNotEmpty())
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($event->media as $media)
+                                        <img src="{{ asset('storage/' . $media->file_path) }}" alt="{{ $media->title }}"
+                                             class="rounded border" style="width: 100px; height: 75px; object-fit: cover;" title="{{ $media->title }}">
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-muted">Aucune image</span>
+                            @endif
+                        </td>
+                    </tr>
                 </table>
             </div>
         </div>

@@ -9,7 +9,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.events.update', $event) }}" method="POST">
+        <form action="{{ route('admin.events.update', $event) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             
@@ -89,6 +89,32 @@
                         @enderror
                     </div>
                 </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Galerie d'images</label>
+                @if($event->media->isNotEmpty())
+                    <div class="row g-2 mb-3">
+                        @foreach($event->media as $media)
+                            <div class="col-auto">
+                                <div class="position-relative d-inline-block">
+                                    <img src="{{ asset('storage/' . $media->file_path) }}" alt="{{ $media->title }}"
+                                         class="rounded border" style="width: 120px; height: 90px; object-fit: cover;">
+                                    <label class="position-absolute bottom-0 start-0 m-1 bg-dark bg-opacity-75 text-white px-2 py-1 rounded small text-truncate" style="max-width: 110px;" title="{{ $media->title }}">{{ $media->title }}</label>
+                                    <label class="position-absolute top-0 end-0 m-1">
+                                        <input type="checkbox" name="delete_media[]" value="{{ $media->id }}" class="form-check-input"> Supprimer
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+                <input type="file" class="form-control @error('gallery_images.*') is-invalid @enderror"
+                       name="gallery_images[]" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" multiple>
+                @error('gallery_images.*')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+                <small class="form-text text-muted">Ajouter de nouvelles images (JPG, PNG, GIF, WebP — max 5 Mo). Cochez « Supprimer » sur une image pour la retirer.</small>
             </div>
 
             <div class="d-flex justify-content-end gap-2">

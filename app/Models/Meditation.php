@@ -31,8 +31,15 @@ class Meditation extends Model
         if (!$this->relationLoaded('media') || !$this->media) {
             return '';
         }
-        $path = $this->media->file_path;
-        return str_starts_with($path, 'http') ? $path : (rtrim(config('app.url'), '/') . '/storage/' . ltrim($path, '/'));
+        $path = trim($this->media->file_path);
+        if ($path === '') {
+            return '';
+        }
+        if (str_starts_with($path, 'http')) {
+            return $path;
+        }
+        $base = rtrim(config('app.url'), '/');
+        return $base . '/' . ltrim($path, '/');
     }
 
     /**
