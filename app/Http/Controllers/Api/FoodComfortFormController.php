@@ -18,6 +18,7 @@ class FoodComfortFormController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
             'retreatName' => 'required|string|max:255',
             'retreatDates' => 'nullable|string',
             'retreat_plan_id' => 'nullable|integer|exists:retreat_plans,id',
@@ -54,16 +55,16 @@ class FoodComfortFormController extends Controller
             }
         }
 
-        // Générer un email unique et un mot de passe
+        // Email : celui saisi dans le formulaire (pour Stripe) ou généré
+        $email = $request->filled('email') && filter_var($request->email, FILTER_VALIDATE_EMAIL)
+            ? $request->email
+            : (strtolower(preg_replace('/[^a-z0-9]/', '.', $request->name)) . '.' . time() . '.' . rand(1000, 9999) . '@retraite.lasev');
+
         $nameParts = explode(' ', $request->name, 2);
         $firstName = $nameParts[0] ?? 'User';
         $lastName = $nameParts[1] ?? '';
         
-        // Générer un identifiant unique basé sur le timestamp
         $userId = 'USR' . strtoupper(Str::random(8));
-        // Générer un email unique avec timestamp et nombre aléatoire
-        $baseEmail = strtolower(preg_replace('/[^a-z0-9]/', '.', $request->name));
-        $email = $baseEmail . '.' . time() . '.' . rand(1000, 9999) . '@retraite.lasev';
         $password = 'RET' . date('d') . date('m') . date('y') . '!';
         
         // Créer un nouvel utilisateur (toujours créer un nouveau compte)
@@ -82,6 +83,7 @@ class FoodComfortFormController extends Controller
             'retreat_plan_id' => $retreatPlanId,
             'first_name' => $firstName,
             'last_name' => $lastName,
+            'email' => $email,
             'has_allergies' => $request->hasAllergy ?? false,
             'allergy_food' => $request->allergyDetails,
             'allergy_reaction' => $request->allergyDetails,
