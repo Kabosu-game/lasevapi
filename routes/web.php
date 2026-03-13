@@ -36,32 +36,52 @@ Route::get('/', function () {
 // Servir les fichiers storage (évite 403 avec php artisan serve sous Windows)
 // Utiliser /serve-storage/... pour que la requête passe par Laravel
 Route::get('/serve-storage/{path}', function (string $path) {
-    $path = str_replace('..', '', $path);
-    // Enlever le préfixe "storage/" si présent (chemin relatif au disque public)
-    if (preg_match('#^storage/#', $path)) {
-        $path = substr($path, 8);
+    try {
+        $path = rawurldecode($path);
+        $path = str_replace('..', '', $path);
+        // Enlever le préfixe "storage/" si présent (chemin relatif au disque public)
+        if (preg_match('#^storage/#', $path)) {
+            $path = substr($path, 8);
+        }
+        $path = trim($path, '/');
+        if ($path === '') {
+            abort(404);
+        }
+        if (!Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+        $fullPath = Storage::disk('public')->path($path);
+        if (!is_file($fullPath) || !is_readable($fullPath)) {
+            abort(404);
+        }
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mimeTypes = [
+            'mp3' => 'audio/mpeg',
+            'm4a' => 'audio/mp4',
+            'ogg' => 'audio/ogg',
+            'oga' => 'audio/ogg',
+            'wav' => 'audio/wav',
+            'mp4' => 'video/mp4',
+            'webm' => 'video/webm',
+            'mov' => 'video/quicktime',
+        ];
+        $mimeType = $mimeTypes[$ext] ?? 'application/octet-stream';
+        if (!isset($mimeTypes[$ext])) {
+            $detected = @mime_content_type($fullPath);
+            if ($detected) {
+                $mimeType = $detected;
+            }
+        }
+        $response = response()->file($fullPath, ['Content-Type' => $mimeType]);
+        $response->header('Access-Control-Allow-Origin', '*');
+        $response->header('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+        return $response;
+    } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        throw $e;
+    } catch (\Throwable $e) {
+        \Log::error('serve-storage error: ' . $e->getMessage(), ['path' => $path ?? '', 'trace' => $e->getTraceAsString()]);
+        abort(500, 'Erreur lors de la lecture du fichier.');
     }
-    if (!Storage::disk('public')->exists($path)) {
-        abort(404);
-    }
-    $fullPath = Storage::disk('public')->path($path);
-    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    $mimeTypes = [
-        'mp3' => 'audio/mpeg',
-        'm4a' => 'audio/mp4',
-        'ogg' => 'audio/ogg',
-        'oga' => 'audio/ogg',
-        'wav' => 'audio/wav',
-        'mp4' => 'video/mp4',
-        'webm' => 'video/webm',
-        'mov' => 'video/quicktime',
-    ];
-    $mimeType = $mimeTypes[$ext] ?? mime_content_type($fullPath) ?: 'application/octet-stream';
-    $response = response()->file($fullPath, ['Content-Type' => $mimeType]);
-    // CORS : permettre à l'app Flutter (autre origine) de charger l'audio
-    $response->header('Access-Control-Allow-Origin', '*');
-    $response->header('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
-    return $response;
 })->where('path', '.*')->name('storage.serve');
 
 // Route de redirection pour le middleware auth par défaut
