@@ -38,14 +38,13 @@ class Meditation extends Model
         if (str_starts_with($path, 'http')) {
             return $path;
         }
-        // Chemin relatif au disque "public" : enlever le préfixe "storage/" si présent
-        // (l'admin enregistre "storage/audios/..." mais le fichier est dans audios/... sur le disque public)
+        // Chemin relatif : URL publique via le lien symbolique public/storage (ex. /storage/audios/meditations/...)
         $path = ltrim($path, '/');
-        if (preg_match('#^storage/#', $path)) {
-            $path = substr($path, 8); // strlen('storage/') = 8
+        if (!preg_match('#^storage/#', $path)) {
+            $path = 'storage/' . $path;
         }
         $base = rtrim(config('app.url'), '/');
-        return $base . '/serve-storage/' . $path;
+        return $base . '/' . $path;
     }
 
     /**
