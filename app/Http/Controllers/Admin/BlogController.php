@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
+use App\Models\Media;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -32,6 +33,8 @@ class BlogController extends Controller
             'author_id' => 'nullable|exists:users,id',
             'is_premium' => 'boolean',
             'category' => 'nullable|string|max:255',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'file|image|mimes:jpg,jpeg,png,webp|max:20480', // 20MB max par image
         ]);
 
         if ($validator->fails()) {
@@ -44,7 +47,23 @@ class BlogController extends Controller
         $data['is_premium'] = $request->has('is_premium');
         $data['category'] = $request->category ?? 'general';
 
-        Blog::create($data);
+        $blog = Blog::create($data);
+
+        $uploadedImages = $request->file('images', []);
+        foreach ($uploadedImages as $image) {
+            if (!$image || !$image->isValid()) continue;
+
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $image->getClientOriginalName());
+            $storedPath = $image->storeAs('images/blogs', $fileName, 'public');
+            $filePath = 'storage/' . $storedPath;
+
+            $blog->media()->save(new Media([
+                'title' => $image->getClientOriginalName(),
+                'slug' => null,
+                'media_type' => 'image',
+                'file_path' => $filePath,
+            ]));
+        }
 
         return redirect()->route('admin.blogs.index')
             ->with('success', 'Blog créé avec succès.');
@@ -74,6 +93,8 @@ class BlogController extends Controller
             'author_id' => 'nullable|exists:users,id',
             'is_premium' => 'boolean',
             'category' => 'nullable|string|max:255',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'file|image|mimes:jpg,jpeg,png,webp|max:20480', // 20MB max par image
         ]);
 
         if ($validator->fails()) {
@@ -87,6 +108,24 @@ class BlogController extends Controller
 
         $blog->update($data);
 
+        if ($request->hasFile('images')) {
+            $uploadedImages = $request->file('images', []);
+            foreach ($uploadedImages as $image) {
+                if (!$image || !$image->isValid()) continue;
+
+                $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $image->getClientOriginalName());
+                $storedPath = $image->storeAs('images/blogs', $fileName, 'public');
+                $filePath = 'storage/' . $storedPath;
+
+                $blog->media()->save(new Media([
+                    'title' => $image->getClientOriginalName(),
+                    'slug' => null,
+                    'media_type' => 'image',
+                    'file_path' => $filePath,
+                ]));
+            }
+        }
+
         return redirect()->route('admin.blogs.index')
             ->with('success', 'Blog mis à jour avec succès.');
     }
@@ -94,6 +133,9 @@ class BlogController extends Controller
     public function destroy($id)
     {
         $blog = Blog::findOrFail($id);
+        foreach ($blog->media as $media) {
+            $media->delete();
+        }
         $blog->delete();
 
         return redirect()->route('admin.blogs.index')

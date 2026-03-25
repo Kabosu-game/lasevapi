@@ -44,7 +44,7 @@
                         <th>Prix</th>
                         <td>
                             @if($event->price)
-                                {{ number_format($event->price, 2) }} €
+                                {{ number_format($event->price, 2) }} $
                             @else
                                 <span class="text-muted">Gratuit</span>
                             @endif

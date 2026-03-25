@@ -40,13 +40,13 @@ class MeditationController extends Controller
             if (!$uploadedFile) {
                 return back()->withInput()->with('error',
                     'Aucun fichier reçu. Vérifiez : 1) Le formulaire a bien enctype="multipart/form-data". ' .
-                    '2) Le fichier ne dépasse pas la limite PHP (php.ini : upload_max_filesize et post_max_size à 100M ou plus).'
+                    '2) Le fichier ne dépasse pas la limite PHP (php.ini : upload_max_filesize et post_max_size à 500M ou plus).'
                 );
             }
             if (!$uploadedFile->isValid()) {
                 $err = $uploadedFile->getError();
                 $messages = [
-                    \UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux : limite PHP (upload_max_filesize) dépassée. Augmentez-la dans php.ini (ex. 100M) puis redémarrez Apache.',
+                    \UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux : limite PHP (upload_max_filesize) dépassée. Augmentez-la dans php.ini (ex. 500M) puis redémarrez Apache.',
                     \UPLOAD_ERR_FORM_SIZE => 'Le fichier dépasse la taille maximale autorisée par le formulaire.',
                     \UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement envoyé. Réessayez.',
                     \UPLOAD_ERR_NO_FILE => 'Aucun fichier reçu.',
@@ -66,15 +66,15 @@ class MeditationController extends Controller
             'duration' => 'nullable|integer',
             'media_title' => 'required|string|max:255',
             'media_slug' => 'nullable|string|max:255|unique:media,slug',
-            'media_file' => 'required|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:102400', // 100MB max
+            'media_file' => 'required|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:512000', // 500MB max (pour viser >30 min selon bitrate)
             'media_type' => 'required|in:audio,video',
             'media_duration' => 'nullable|integer',
         ], [
             'media_file.required' => 'Veuillez sélectionner un fichier audio ou vidéo.',
             'media_file.file' => 'Le fichier média n\'a pas pu être reçu. Vérifiez enctype="multipart/form-data" et les limites PHP (upload_max_filesize, post_max_size).',
-            'media_file.uploaded' => 'L\'upload du fichier a échoué. Vérifiez la taille (max 100 Mo) et les limites dans php.ini.',
+                    'media_file.uploaded' => 'L\'upload du fichier a échoué. Vérifiez la taille (max 500 Mo) et les limites dans php.ini.',
             'media_file.mimes' => 'Formats acceptés : mp3, mp4, m4a, mov, avi, wav, ogg, oga.',
-            'media_file.max' => 'Le fichier ne doit pas dépasser 100 Mo. Augmentez upload_max_filesize et post_max_size dans php.ini (100M).',
+            'media_file.max' => 'Le fichier ne doit pas dépasser 500 Mo. Augmentez upload_max_filesize et post_max_size dans php.ini (500M).',
         ]);
 
         if ($validator->fails()) {
@@ -140,7 +140,7 @@ class MeditationController extends Controller
             'duration' => 'nullable|integer',
             'media_title' => 'sometimes|required|string|max:255',
             'media_slug' => 'nullable|string|max:255|unique:media,slug,' . ($meditation->media->id ?? 'NULL'),
-            'media_file' => 'sometimes|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:102400', // 100MB max
+            'media_file' => 'sometimes|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:512000', // 500MB max
             'media_type' => 'sometimes|required|in:audio,video',
             'media_duration' => 'nullable|integer',
         ]);

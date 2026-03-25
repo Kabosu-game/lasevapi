@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MeditationController;
@@ -35,16 +36,17 @@ Route::get('/', function () {
 
 // Servir les fichiers storage (évite 403 avec php artisan serve sous Windows)
 // Utiliser /serve-storage/... pour que la requête passe par Laravel
-Route::get('/serve-storage/{path}', function (string $path) {
+Route::get('/serve-storage/{path}', function (Request $request, string $path) {
+    $requestedPath = $path;
     try {
         $path = rawurldecode($path);
+        $path = str_replace("\0", '', $path);
         $path = str_replace('..', '', $path);
-        // Enlever le préfixe "storage/" si présent (chemin relatif au disque public)
         if (preg_match('#^storage/#', $path)) {
             $path = substr($path, 8);
         }
         $path = trim($path, '/');
-        if ($path === '') {
+        if ($path === '' || strlen($path) > 500) {
             abort(404);
         }
         if (!Storage::disk('public')->exists($path)) {
@@ -72,14 +74,71 @@ Route::get('/serve-storage/{path}', function (string $path) {
                 $mimeType = $detected;
             }
         }
-        $response = response()->file($fullPath, ['Content-Type' => $mimeType]);
-        $response->header('Access-Control-Allow-Origin', '*');
-        $response->header('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
-        return $response;
+
+        $contentLength = filesize($fullPath);
+        $headersBase = [
+            'Content-Type' => $mimeType,
+            'Accept-Ranges' => 'bytes',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Expose-Headers' => 'Content-Length, Content-Type, Content-Range',
+        ];
+
+        // Support du header Range (important pour les vidéos longues + seek côté Flutter)
+        $rangeHeader = $request->header('Range');
+        if ($rangeHeader && preg_match('/bytes=(\d+)-(\d*)/', $rangeHeader, $m)) {
+            $start = (int) $m[1];
+            $end = ($m[2] !== '') ? (int) $m[2] : ($contentLength - 1);
+
+            if ($start >= $contentLength || $start > $end) {
+                return response('', 416, array_merge($headersBase, [
+                    'Content-Range' => 'bytes */' . $contentLength,
+                ]));
+            }
+
+            $length = $end - $start + 1;
+            $headers = array_merge($headersBase, [
+                'Content-Range' => 'bytes ' . $start . '-' . $end . '/' . $contentLength,
+                'Content-Length' => (string) $length,
+            ]);
+
+            return response()->stream(function () use ($fullPath, $start, $end) {
+                $h = fopen($fullPath, 'rb');
+                if (!$h) return;
+
+                fseek($h, $start);
+                $remaining = ($end - $start) + 1;
+                $bufferSize = 1024 * 1024; // 1MB chunks
+
+                while ($remaining > 0 && !feof($h)) {
+                    $readSize = min($bufferSize, $remaining);
+                    $chunk = fread($h, $readSize);
+                    if ($chunk === false) break;
+                    echo $chunk;
+                    $remaining -= strlen($chunk);
+                }
+
+                fclose($h);
+            }, 206, $headers);
+        }
+
+        return response()->stream(function () use ($fullPath) {
+            $h = fopen($fullPath, 'rb');
+            if ($h) {
+                fpassthru($h);
+                fclose($h);
+            }
+        }, 200, array_merge($headersBase, [
+            'Content-Length' => (string) $contentLength,
+        ]));
     } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
         throw $e;
     } catch (\Throwable $e) {
-        \Log::error('serve-storage error: ' . $e->getMessage(), ['path' => $path ?? '', 'trace' => $e->getTraceAsString()]);
+        \Log::error('serve-storage 500', [
+            'message' => $e->getMessage(),
+            'requested_path' => $requestedPath,
+            'path_after_clean' => $path ?? null,
+            'trace' => $e->getTraceAsString(),
+        ]);
         abort(500, 'Erreur lors de la lecture du fichier.');
     }
 })->where('path', '.*')->name('storage.serve');
@@ -114,7 +173,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         };
         $uploadBytes = $bytes($uploadMax);
         $postBytes = $bytes($postMax);
-        $ok = $uploadBytes >= 100 * 1024 * 1024 && $postBytes >= 100 * 1024 * 1024;
+        $ok = $uploadBytes >= 500 * 1024 * 1024 && $postBytes >= 500 * 1024 * 1024;
         return response()->json([
             'upload_max_filesize' => $uploadMax,
             'post_max_size' => $postMax,
@@ -123,8 +182,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             'php_ini_loaded_file' => $loadedIni ?: '(aucun fichier chargé)',
             'ok' => $ok,
             'message' => $ok
-                ? 'Les limites sont suffisantes pour des fichiers jusqu\'à 100 Mo.'
-                : 'Modifiez le fichier php.ini indiqué ci-dessus (php_ini_loaded_file), mettez upload_max_filesize = 100M et post_max_size = 100M, puis redémarrez Apache (WAMP → Redémarrer tous les services). Si vous avez modifié un autre fichier, c\'est normal que ça ne change pas.',
+                ? 'Les limites sont suffisantes pour des fichiers jusqu\'à 500 Mo.'
+                : 'Modifiez le fichier php.ini indiqué ci-dessus (php_ini_loaded_file), mettez upload_max_filesize = 500M et post_max_size = 500M, puis redémarrez Apache (WAMP → Redémarrer tous les services). Si vous avez modifié un autre fichier, c\'est normal que ça ne change pas.',
         ], 200, [], JSON_UNESCAPED_UNICODE);
     })->name('upload-limits');
 
@@ -142,16 +201,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
             if ($u === 'K') return $n * 1024;
             return (int) $val;
         };
-        $ok = $bytes($uploadMax) >= 100*1024*1024 && $bytes($postMax) >= 100*1024*1024;
+        $ok = $bytes($uploadMax) >= 500*1024*1024 && $bytes($postMax) >= 500*1024*1024;
         $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Limites PHP</title></head><body style="font-family:sans-serif;margin:2rem;">';
         $html .= '<h1>Diagnostic upload (médias)</h1>';
         $html .= '<p><strong>Fichier php.ini utilisé par Apache :</strong><br><code style="background:#eee;padding:4px;">' . htmlspecialchars($loadedIni) . '</code></p>';
         $html .= '<p><strong>upload_max_filesize</strong> = ' . htmlspecialchars($uploadMax) . '</p>';
         $html .= '<p><strong>post_max_size</strong> = ' . htmlspecialchars($postMax) . '</p>';
         if (!$ok) {
-            $html .= '<p style="color:red;"><strong>Ces valeurs sont trop basses.</strong> Ouvrez le fichier indiqué ci-dessus dans un éditeur, cherchez <code>upload_max_filesize</code> et <code>post_max_size</code>, mettez-les à <code>100M</code>, enregistrez, puis WAMP → Redémarrer tous les services.</p>';
+            $html .= '<p style="color:red;"><strong>Ces valeurs sont trop basses.</strong> Ouvrez le fichier indiqué ci-dessus dans un éditeur, cherchez <code>upload_max_filesize</code> et <code>post_max_size</code>, mettez-les à <code>500M</code>, enregistrez, puis WAMP → Redémarrer tous les services.</p>';
         } else {
-            $html .= '<p style="color:green;">Les limites sont suffisantes (≥ 100 Mo).</p>';
+            $html .= '<p style="color:green;">Les limites sont suffisantes (≥ 500 Mo).</p>';
         }
         $html .= '</body></html>';
         return response($html)->header('Content-Type', 'text/html; charset=utf-8');

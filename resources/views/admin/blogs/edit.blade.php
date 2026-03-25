@@ -9,7 +9,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.blogs.update', $blog) }}" method="POST">
+        <form action="{{ route('admin.blogs.update', $blog) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             
@@ -38,6 +38,17 @@
                 @error('body')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="images" class="form-label">Ajouter des photos (galerie)</label>
+                <input class="form-control @error('images') is-invalid @enderror"
+                       type="file"
+                       id="images"
+                       name="images[]"
+                       multiple
+                       accept="image/*">
+                <small class="form-text text-muted">Optionnel. Jusqu'à 10 images supplémentaires.</small>
             </div>
 
             <div class="row">

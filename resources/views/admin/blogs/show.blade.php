@@ -69,6 +69,22 @@
                         <td>{{ $blog->updated_at->format('d/m/Y à H:i') }}</td>
                     </tr>
                 </table>
+
+                @if($blog->media && $blog->media->isNotEmpty())
+                    <h4 class="mt-4">Photos</h4>
+                    <div class="row g-2 mt-1">
+                        @foreach($blog->media as $media)
+                            <div class="col-md-3">
+                                <img
+                                    src="{{ asset($media->file_path) }}"
+                                    class="img-thumbnail"
+                                    style="max-height: 160px; object-fit: cover;"
+                                    alt="Photo du blog"
+                                >
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
     </div>

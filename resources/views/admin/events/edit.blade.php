@@ -57,7 +57,7 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label for="price" class="form-label">Prix (€)</label>
+                        <label for="price" class="form-label">Prix ($)</label>
                         <input type="number" step="0.01" class="form-control @error('price') is-invalid @enderror" 
                                id="price" name="price" value="{{ old('price', $event->price) }}" min="0">
                         @error('price')
