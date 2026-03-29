@@ -11,6 +11,7 @@ class Blog extends Model
         'slug',
         'description',
         'body',
+        'cover_image',
         'author_id',
         'is_premium',
         'category',

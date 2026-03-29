@@ -33,8 +33,11 @@ class BlogController extends Controller
             'author_id' => 'nullable|exists:users,id',
             'is_premium' => 'boolean',
             'category' => 'nullable|string|max:255',
+            'cover_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:20480',
             'images' => 'nullable|array|max:10',
             'images.*' => 'file|image|mimes:jpg,jpeg,png,webp|max:20480', // 20MB max par image
+            'videos' => 'nullable|array|max:5',
+            'videos.*' => 'file|mimes:mp4,webm,mov,m4v|max:204800', // ~200 Mo max par vidéo
         ]);
 
         if ($validator->fails()) {
@@ -46,6 +49,15 @@ class BlogController extends Controller
         $data['author_id'] = $request->author_id ?? auth()->id();
         $data['is_premium'] = $request->has('is_premium');
         $data['category'] = $request->category ?? 'general';
+
+        if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
+            $cover = $request->file('cover_image');
+            $fileName = 'cover_' . time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $cover->getClientOriginalName());
+            $storedPath = $cover->storeAs('images/blogs/covers', $fileName, 'public');
+            $data['cover_image'] = 'storage/' . $storedPath;
+        } else {
+            unset($data['cover_image']);
+        }
 
         $blog = Blog::create($data);
 
@@ -61,6 +73,24 @@ class BlogController extends Controller
                 'title' => $image->getClientOriginalName(),
                 'slug' => null,
                 'media_type' => 'image',
+                'file_path' => $filePath,
+            ]));
+        }
+
+        $uploadedVideos = $request->file('videos', []);
+        foreach ($uploadedVideos as $video) {
+            if (!$video || !$video->isValid()) {
+                continue;
+            }
+
+            $fileName = 'v_' . time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $video->getClientOriginalName());
+            $storedPath = $video->storeAs('videos/blogs', $fileName, 'public');
+            $filePath = 'storage/' . $storedPath;
+
+            $blog->media()->save(new Media([
+                'title' => $video->getClientOriginalName(),
+                'slug' => null,
+                'media_type' => 'video',
                 'file_path' => $filePath,
             ]));
         }
@@ -93,8 +123,11 @@ class BlogController extends Controller
             'author_id' => 'nullable|exists:users,id',
             'is_premium' => 'boolean',
             'category' => 'nullable|string|max:255',
+            'cover_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:20480',
             'images' => 'nullable|array|max:10',
             'images.*' => 'file|image|mimes:jpg,jpeg,png,webp|max:20480', // 20MB max par image
+            'videos' => 'nullable|array|max:5',
+            'videos.*' => 'file|mimes:mp4,webm,mov,m4v|max:204800',
         ]);
 
         if ($validator->fails()) {
@@ -105,6 +138,15 @@ class BlogController extends Controller
         $data['slug'] = Str::slug($request->title);
         $data['is_premium'] = $request->has('is_premium');
         $data['category'] = $request->category ?? $blog->category ?? 'general';
+
+        if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
+            $cover = $request->file('cover_image');
+            $fileName = 'cover_' . time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $cover->getClientOriginalName());
+            $storedPath = $cover->storeAs('images/blogs/covers', $fileName, 'public');
+            $data['cover_image'] = 'storage/' . $storedPath;
+        } else {
+            unset($data['cover_image']);
+        }
 
         $blog->update($data);
 
@@ -121,6 +163,26 @@ class BlogController extends Controller
                     'title' => $image->getClientOriginalName(),
                     'slug' => null,
                     'media_type' => 'image',
+                    'file_path' => $filePath,
+                ]));
+            }
+        }
+
+        if ($request->hasFile('videos')) {
+            $uploadedVideos = $request->file('videos', []);
+            foreach ($uploadedVideos as $video) {
+                if (!$video || !$video->isValid()) {
+                    continue;
+                }
+
+                $fileName = 'v_' . time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $video->getClientOriginalName());
+                $storedPath = $video->storeAs('videos/blogs', $fileName, 'public');
+                $filePath = 'storage/' . $storedPath;
+
+                $blog->media()->save(new Media([
+                    'title' => $video->getClientOriginalName(),
+                    'slug' => null,
+                    'media_type' => 'video',
                     'file_path' => $filePath,
                 ]));
             }

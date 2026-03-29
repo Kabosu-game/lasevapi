@@ -40,6 +40,19 @@
             </div>
 
             <div class="mb-3">
+                <label for="cover_image" class="form-label">Photo de couverture</label>
+                <input class="form-control @error('cover_image') is-invalid @enderror"
+                       type="file"
+                       id="cover_image"
+                       name="cover_image"
+                       accept="image/*">
+                <small class="form-text text-muted">Optionnel. Utilisée dans le catalogue de l’app (sinon la première image de la galerie).</small>
+                @error('cover_image')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
                 <label for="images" class="form-label">Photos de l'article (galerie)</label>
                 <input class="form-control @error('images') is-invalid @enderror"
                        type="file"
@@ -48,6 +61,23 @@
                        multiple
                        accept="image/*">
                 <small class="form-text text-muted">Optionnel. Jusqu'à 10 images.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="videos" class="form-label">Vidéos (sous la galerie dans l’app)</label>
+                <input class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror"
+                       type="file"
+                       id="videos"
+                       name="videos[]"
+                       multiple
+                       accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v">
+                <small class="form-text text-muted">Optionnel. Jusqu’à 5 fichiers (MP4, WebM, MOV — max. ~200 Mo chacun).</small>
+                @error('videos')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                @error('videos.*')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="row">

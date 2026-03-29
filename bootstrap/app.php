@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'deploy/hook',
+        ]);
         
         // CORS doit s'exécuter en premier pour tous les appels API (y compris les erreurs 500)
         $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);

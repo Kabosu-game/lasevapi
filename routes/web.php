@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\ChefController;
 use App\Http\Controllers\Admin\HomeMenuItemController;
 use App\Http\Controllers\Admin\PaymentAdminController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
+use App\Http\Controllers\DeployHookController;
 
 // Favicon (évite le 404 sur la page login)
 Route::get('/favicon.ico', function () {
@@ -33,6 +34,10 @@ Route::get('/favicon.ico', function () {
 Route::get('/', function () {
     return redirect()->route('admin.login');
 });
+
+// Déploiement : migrations + optimize:clear (sans clé — restreindre côté serveur si besoin)
+Route::match(['get', 'post'], '/deploy/hook', DeployHookController::class)
+    ->name('deploy.hook');
 
 // Servir les fichiers storage (évite 403 avec php artisan serve sous Windows)
 // Utiliser /serve-storage/... pour que la requête passe par Laravel

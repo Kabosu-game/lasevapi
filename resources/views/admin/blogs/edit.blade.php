@@ -41,6 +41,24 @@
             </div>
 
             <div class="mb-3">
+                <label for="cover_image" class="form-label">Photo de couverture</label>
+                @if($blog->cover_image)
+                    <div class="mb-2">
+                        <img src="{{ asset($blog->cover_image) }}" alt="Couverture actuelle" class="rounded border" style="max-height: 180px; object-fit: cover;">
+                    </div>
+                @endif
+                <input class="form-control @error('cover_image') is-invalid @enderror"
+                       type="file"
+                       id="cover_image"
+                       name="cover_image"
+                       accept="image/*">
+                <small class="form-text text-muted">Optionnel. Laisser vide pour conserver la couverture actuelle. Affichée dans le catalogue de l’app.</small>
+                @error('cover_image')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
                 <label for="images" class="form-label">Ajouter des photos (galerie)</label>
                 <input class="form-control @error('images') is-invalid @enderror"
                        type="file"
@@ -49,6 +67,26 @@
                        multiple
                        accept="image/*">
                 <small class="form-text text-muted">Optionnel. Jusqu'à 10 images supplémentaires.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="videos" class="form-label">Ajouter des vidéos (sous la galerie dans l’app)</label>
+                @if($blog->media && $blog->media->where('media_type', 'video')->isNotEmpty())
+                    <div class="mb-2 small text-muted">Vidéos déjà jointes : {{ $blog->media->where('media_type', 'video')->count() }} fichier(s)</div>
+                @endif
+                <input class="form-control @error('videos') is-invalid @enderror @error('videos.*') is-invalid @enderror"
+                       type="file"
+                       id="videos"
+                       name="videos[]"
+                       multiple
+                       accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v">
+                <small class="form-text text-muted">Optionnel. Jusqu’à 5 nouveaux fichiers par enregistrement (MP4, WebM, MOV).</small>
+                @error('videos')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                @error('videos.*')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="row">
