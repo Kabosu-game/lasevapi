@@ -67,15 +67,18 @@ class FoodComfortFormController extends Controller
         $userId = 'USR' . strtoupper(Str::random(8));
         $password = 'RET' . date('d') . date('m') . date('y') . '!';
         
-        // Créer un nouvel utilisateur (toujours créer un nouveau compte)
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $email,
-            'password' => Hash::make($password),
-            'role' => 'user',
-            'device_id' => $userId,
-            'date_of_birth' => now()->subYears(18)->toDateString(), // Default to 18 years ago
-        ]);
+        // Réutiliser le compte existant si l'email est déjà en base, sinon créer
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            $user = User::create([
+                'name'          => $request->name,
+                'email'         => $email,
+                'password'      => Hash::make($password),
+                'role'          => 'user',
+                'device_id'     => $userId,
+                'date_of_birth' => now()->subYears(18)->toDateString(),
+            ]);
+        }
 
         // Préparer les données du formulaire
         $formData = [

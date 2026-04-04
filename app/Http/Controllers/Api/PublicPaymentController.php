@@ -310,7 +310,7 @@ class PublicPaymentController extends Controller
                 'amount' => 'required|numeric',
                 'status' => 'required|in:pending,completed,failed',
                 'userId' => 'required|string',
-                'retreatPlanId' => 'required|exists:retreat_plans,id',
+                'retreatPlanId' => 'nullable|exists:retreat_plans,id',
                 'email' => 'nullable|email',
             ]);
 

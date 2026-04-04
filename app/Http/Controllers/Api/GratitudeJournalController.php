@@ -46,8 +46,8 @@ class GratitudeJournalController extends Controller
             'user_id' => 'required|integer|exists:users,id',
             'title' => 'nullable|string|max:255',
             'positive_thing_1' => 'required|string',
-            'positive_thing_2' => 'required|string',
-            'positive_thing_3' => 'required|string',
+            'positive_thing_2' => 'nullable|string',
+            'positive_thing_3' => 'nullable|string',
             'journal_date' => 'required|date',
         ]);
         if ($validator->fails()) {
