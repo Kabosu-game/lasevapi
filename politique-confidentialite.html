@@ -5,162 +5,310 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Politique de Confidentialité – App Mobile Lasèv</title>
   <style>
+    :root {
+      --bg: #f2f6f3;
+      --card: #ffffff;
+      --text: #1f2b22;
+      --muted: #5c6b61;
+      --brand: #1f6b47;
+      --brand-soft: #e8f4ed;
+      --border: #dbe7df;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      padding: 24px;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f7f7f7;
-      color: #222;
+      padding: 28px 16px;
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.62;
     }
 
     .container {
-      max-width: 960px;
+      max-width: 980px;
       margin: 0 auto;
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 12px;
+      padding: 30px 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(11, 40, 25, 0.08);
     }
 
-    pre {
+    .hero {
+      padding: 18px 18px 14px;
+      background: linear-gradient(140deg, #f6fff9, var(--brand-soft));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
       margin: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: inherit;
-      line-height: 1.55;
+      font-size: 30px;
+      line-height: 1.2;
+      color: #123825;
+      letter-spacing: 0.2px;
+    }
+
+    .meta {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    section {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      color: #184d34;
+    }
+
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 17px;
+      color: var(--brand);
+    }
+
+    ul {
+      margin: 8px 0 12px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .contact-box {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafdfb;
+    }
+
+    a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 680px) {
+      .container {
+        padding: 22px 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
 <body>
   <main class="container">
-    <pre>Politique de Confidentialité – App Mobile Lasèv
-Dernière mise à jour : 11 Novembre 2025
-Bienvenue sur Lasèv, l’écosystème digital dédié à l’alignement personnel, au bien-être spirituel, au développement communautaire et aux expériences immersives du sanctuaire.
-La présente Politique de Confidentialité explique comment Lasèv collecte, utilise, protège et partage les données personnelles de ses utilisateurs lors de l’utilisation de l’application mobile, de la carte physique Lasèv et des services associés.
-En utilisant l’application, vous acceptez les pratiques décrites ci-dessous.
-1) Informations collectées
-Nous collectons uniquement les informations nécessaires au bon fonctionnement de l’expérience Lasèv.
-a) Informations fournies par l’utilisateur
-Lors de la création d’un compte ou de l’utilisation de l’application, nous pouvons collecter :
-nom et prénom
-adresse e-mail
-numéro de téléphone
-photo de profil
-date de naissance
-préférences spirituelles et centres d’intérêt
-informations liées à l’abonnement
-données liées à la carte physique Lasèv
-messages, publications et interactions dans le réseau social intégré
-contenu partagé dans les espaces communautaires
-demandes de support client
-b) Données collectées automatiquement
-Nous pouvons également collecter :
-type d’appareil
-système d’exploitation
-identifiant de l’appareil
-adresse IP
-langue utilisée
-fuseau horaire
-pages ou modules consultés
-durée des sessions
-interactions avec les contenus
-journaux techniques et erreurs
-données de sécurité et prévention de fraude
-c) Données de localisation
-Si activée par l’utilisateur, l’application peut utiliser la localisation afin de :
-recommander des expériences Lasèv à proximité
-faciliter l’accès au sanctuaire
-personnaliser les retraites et événements
-sécuriser certaines opérations liées à la carte
+    <header class="hero">
+      <h1>Politique de Confidentialité – App Mobile Lasèv</h1>
+      <p class="meta">Dernière mise à jour : 11 Novembre 2025</p>
+    </header>
 
-2) Utilisation des données
-Les données collectées servent à :
-créer et gérer votre compte
-fournir l’expérience personnalisée Lasèv
-activer l’abonnement premium
-gérer la carte physique et son solde
-améliorer les recommandations de contenu
-faciliter les interactions du réseau social spirituel
-envoyer des notifications importantes
-traiter les paiements et renouvellements
-prévenir la fraude et les abus
-améliorer la performance et la sécurité de l’application
-respecter nos obligations légales et comptables
+    <p>
+      Bienvenue sur Lasèv, l’écosystème digital dédié à l’alignement personnel, au bien-être spirituel, au développement communautaire et aux expériences immersives du sanctuaire.
+    </p>
+    <p>
+      La présente Politique de Confidentialité explique comment Lasèv collecte, utilise, protège et partage les données personnelles de ses utilisateurs lors de l’utilisation de l’application mobile, de la carte physique Lasèv et des services associés.
+    </p>
+    <p>
+      En utilisant l’application, vous acceptez les pratiques décrites ci-dessous.
+    </p>
 
-3) Partage des informations
-Lasèv ne vend jamais les données personnelles des utilisateurs.
-Certaines données peuvent être partagées uniquement avec :
-prestataires de paiement
-services cloud sécurisés
-outils d’analytics
-services de notification push
-partenaires techniques de la carte physique
-autorités légales si la loi l’exige
-Tous nos partenaires sont tenus par des obligations strictes de confidentialité.
+    <section>
+      <h2>1) Informations collectées</h2>
+      <p>Nous collectons uniquement les informations nécessaires au bon fonctionnement de l’expérience Lasèv.</p>
 
-4) Sécurité des données
-Nous mettons en place des mesures techniques et organisationnelles adaptées :
-chiffrement des données en transit (SSL/TLS)
-stockage sécurisé
-contrôle des accès
-journalisation des connexions
-surveillance anti-fraude
-protection contre les accès non autorisés
-sauvegardes sécurisées
-Aucun système n’étant infaillible, nous travaillons en permanence à renforcer la sécurité de l’écosystème Lasèv.
+      <h3>a) Informations fournies par l’utilisateur</h3>
+      <p>Lors de la création d’un compte ou de l’utilisation de l’application, nous pouvons collecter :</p>
+      <ul>
+        <li>nom et prénom</li>
+        <li>adresse e-mail</li>
+        <li>numéro de téléphone</li>
+        <li>photo de profil</li>
+        <li>date de naissance</li>
+        <li>préférences spirituelles et centres d’intérêt</li>
+        <li>informations liées à l’abonnement</li>
+        <li>données liées à la carte physique Lasèv</li>
+        <li>messages, publications et interactions dans le réseau social intégré</li>
+        <li>contenu partagé dans les espaces communautaires</li>
+        <li>demandes de support client</li>
+      </ul>
 
-5) Conservation des données
-Nous conservons les données :
-tant que le compte reste actif
-pendant la durée de l’abonnement
-aussi longtemps que nécessaire pour la gestion de la carte physique
-selon les obligations légales comptables et fiscales
-jusqu’à suppression demandée par l’utilisateur, sauf obligations légales contraires
+      <h3>b) Données collectées automatiquement</h3>
+      <p>Nous pouvons également collecter :</p>
+      <ul>
+        <li>type d’appareil</li>
+        <li>système d’exploitation</li>
+        <li>identifiant de l’appareil</li>
+        <li>adresse IP</li>
+        <li>langue utilisée</li>
+        <li>fuseau horaire</li>
+        <li>pages ou modules consultés</li>
+        <li>durée des sessions</li>
+        <li>interactions avec les contenus</li>
+        <li>journaux techniques et erreurs</li>
+        <li>données de sécurité et prévention de fraude</li>
+      </ul>
 
-6) Vos droits
-Selon votre juridiction, vous pouvez exercer les droits suivants :
-droit d’accès
-droit de rectification
-droit à l’effacement
-droit à la limitation
-droit à la portabilité
-droit d’opposition
-retrait du consentement
-désactivation des notifications
-suppression du compte
-Les stores et les lois internationales exigent que ces droits soient clairement indiqués.
+      <h3>c) Données de localisation</h3>
+      <p>Si activée par l’utilisateur, l’application peut utiliser la localisation afin de :</p>
+      <ul>
+        <li>recommander des expériences Lasèv à proximité</li>
+        <li>faciliter l’accès au sanctuaire</li>
+        <li>personnaliser les retraites et événements</li>
+        <li>sécuriser certaines opérations liées à la carte</li>
+      </ul>
+    </section>
 
-7) Réseau social spirituel et contenus communautaires
-Lasèv inclut un espace communautaire privé.
-Tout contenu volontairement partagé par l’utilisateur (posts, commentaires, photos, messages) peut être visible selon les paramètres choisis :
-privé
-cercle restreint
-membres premium
-communauté publique Lasèv
-L’utilisateur reste responsable des contenus qu’il publie.
+    <section>
+      <h2>2) Utilisation des données</h2>
+      <p>Les données collectées servent à :</p>
+      <ul>
+        <li>créer et gérer votre compte</li>
+        <li>fournir l’expérience personnalisée Lasèv</li>
+        <li>activer l’abonnement premium</li>
+        <li>gérer la carte physique et son solde</li>
+        <li>améliorer les recommandations de contenu</li>
+        <li>faciliter les interactions du réseau social spirituel</li>
+        <li>envoyer des notifications importantes</li>
+        <li>traiter les paiements et renouvellements</li>
+        <li>prévenir la fraude et les abus</li>
+        <li>améliorer la performance et la sécurité de l’application</li>
+        <li>respecter nos obligations légales et comptables</li>
+      </ul>
+    </section>
 
-8) Paiements et carte physique Lasèv
-Les paiements, abonnements et rechargements de la carte physique sont traités via des partenaires sécurisés.
-Lasèv ne conserve jamais les informations complètes de carte bancaire sur ses serveurs.
-Les partenaires de paiement appliquent leurs propres politiques de confidentialité et standards PCI.
+    <section>
+      <h2>3) Partage des informations</h2>
+      <p>Lasèv ne vend jamais les données personnelles des utilisateurs.</p>
+      <p>Certaines données peuvent être partagées uniquement avec :</p>
+      <ul>
+        <li>prestataires de paiement</li>
+        <li>services cloud sécurisés</li>
+        <li>outils d’analytics</li>
+        <li>services de notification push</li>
+        <li>partenaires techniques de la carte physique</li>
+        <li>autorités légales si la loi l’exige</li>
+      </ul>
+      <p>Tous nos partenaires sont tenus par des obligations strictes de confidentialité.</p>
+    </section>
 
-9) Mineurs
-L’application n’est pas destinée aux enfants de moins de 13 ans sans supervision parentale.
-Si nous découvrons qu’un mineur a fourni des données sans autorisation, celles-ci seront supprimées rapidement.
+    <section>
+      <h2>4) Sécurité des données</h2>
+      <p>Nous mettons en place des mesures techniques et organisationnelles adaptées :</p>
+      <ul>
+        <li>chiffrement des données en transit (SSL/TLS)</li>
+        <li>stockage sécurisé</li>
+        <li>contrôle des accès</li>
+        <li>journalisation des connexions</li>
+        <li>surveillance anti-fraude</li>
+        <li>protection contre les accès non autorisés</li>
+        <li>sauvegardes sécurisées</li>
+      </ul>
+      <p>Aucun système n’étant infaillible, nous travaillons en permanence à renforcer la sécurité de l’écosystème Lasèv.</p>
+    </section>
 
-10) Modifications de la politique
-Cette politique peut évoluer à tout moment pour refléter :
-nouvelles fonctionnalités
-évolution de la carte Lasèv
-ajout de modules IA
-changements réglementaires
-exigences App Store / Play Store
-En cas de modification importante, une notification sera envoyée dans l’application.
+    <section>
+      <h2>5) Conservation des données</h2>
+      <p>Nous conservons les données :</p>
+      <ul>
+        <li>tant que le compte reste actif</li>
+        <li>pendant la durée de l’abonnement</li>
+        <li>aussi longtemps que nécessaire pour la gestion de la carte physique</li>
+        <li>selon les obligations légales comptables et fiscales</li>
+        <li>jusqu’à suppression demandée par l’utilisateur, sauf obligations légales contraires</li>
+      </ul>
+    </section>
 
-11) Contact
-Pour toute question relative à la confidentialité :
-Lasèv – Protection des données
-privacy@lasev.app</pre>
+    <section>
+      <h2>6) Vos droits</h2>
+      <p>Selon votre juridiction, vous pouvez exercer les droits suivants :</p>
+      <ul>
+        <li>droit d’accès</li>
+        <li>droit de rectification</li>
+        <li>droit à l’effacement</li>
+        <li>droit à la limitation</li>
+        <li>droit à la portabilité</li>
+        <li>droit d’opposition</li>
+        <li>retrait du consentement</li>
+        <li>désactivation des notifications</li>
+        <li>suppression du compte</li>
+      </ul>
+      <p>Les stores et les lois internationales exigent que ces droits soient clairement indiqués.</p>
+    </section>
+
+    <section>
+      <h2>7) Réseau social spirituel et contenus communautaires</h2>
+      <p>Lasèv inclut un espace communautaire privé.</p>
+      <p>Tout contenu volontairement partagé par l’utilisateur (posts, commentaires, photos, messages) peut être visible selon les paramètres choisis :</p>
+      <ul>
+        <li>privé</li>
+        <li>cercle restreint</li>
+        <li>membres premium</li>
+        <li>communauté publique Lasèv</li>
+      </ul>
+      <p>L’utilisateur reste responsable des contenus qu’il publie.</p>
+    </section>
+
+    <section>
+      <h2>8) Paiements et carte physique Lasèv</h2>
+      <p>Les paiements, abonnements et rechargements de la carte physique sont traités via des partenaires sécurisés.</p>
+      <p>Lasèv ne conserve jamais les informations complètes de carte bancaire sur ses serveurs.</p>
+      <p>Les partenaires de paiement appliquent leurs propres politiques de confidentialité et standards PCI.</p>
+    </section>
+
+    <section>
+      <h2>9) Mineurs</h2>
+      <p>L’application n’est pas destinée aux enfants de moins de 13 ans sans supervision parentale.</p>
+      <p>Si nous découvrons qu’un mineur a fourni des données sans autorisation, celles-ci seront supprimées rapidement.</p>
+    </section>
+
+    <section>
+      <h2>10) Modifications de la politique</h2>
+      <p>Cette politique peut évoluer à tout moment pour refléter :</p>
+      <ul>
+        <li>nouvelles fonctionnalités</li>
+        <li>évolution de la carte Lasèv</li>
+        <li>ajout de modules IA</li>
+        <li>changements réglementaires</li>
+        <li>exigences App Store / Play Store</li>
+      </ul>
+      <p>En cas de modification importante, une notification sera envoyée dans l’application.</p>
+    </section>
+
+    <section>
+      <h2>11) Contact</h2>
+      <div class="contact-box">
+        <p>Pour toute question relative à la confidentialité :</p>
+        <p>Lasèv – Protection des données</p>
+        <p><a href="mailto:privacy@lasev.app">privacy@lasev.app</a></p>
+      </div>
+    </section>
   </main>
 </body>
 </html>
