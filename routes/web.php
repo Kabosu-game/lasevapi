@@ -36,6 +36,11 @@ Route::get('/', function () {
     return view('home');
 });
 
+// Page politique de confidentialite accessible publiquement
+Route::get('/politique-confidentialite.html', function () {
+    return view('privacy-policy');
+})->name('privacy.policy');
+
 // Déploiement : migrations + optimize:clear (sans clé — restreindre côté serveur si besoin)
 Route::match(['get', 'post'], '/deploy/hook', DeployHookController::class)
     ->name('deploy.hook');

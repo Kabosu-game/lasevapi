@@ -3,72 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lasev - Telechargement de l'application</title>
+    <title>Lasev | Telechargement officiel</title>
+    <meta name="description" content="Installez Lasev sur Android, iOS et Web. Meditations, bien-etre, serenite et routines quotidiennes.">
     <style>
         :root {
-            --bg: #f6faf7;
+            --bg: #f2f7f4;
             --card: #ffffff;
             --primary: #265533;
-            --secondary: #3e7a52;
-            --text: #1e2a22;
-            --muted: #5f6f64;
-            --border: #d9e7dc;
+            --primary-dark: #1f462b;
+            --accent: #d8eadc;
+            --text: #1d2a22;
+            --muted: #5a6d61;
+            --border: #d8e4dc;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(145deg, #f8fcf9 0%, #eef7f1 100%);
             color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background:
+                radial-gradient(circle at 10% 10%, #eaf4ed 0, transparent 40%),
+                radial-gradient(circle at 90% 20%, #e3efe7 0, transparent 35%),
+                var(--bg);
+        }
+
+        .wrapper {
+            max-width: 1080px;
+            margin: 0 auto;
             padding: 24px;
         }
 
-        .card {
-            width: 100%;
-            max-width: 780px;
-            background: var(--card);
+        .hero {
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 32px;
-            box-shadow: 0 14px 42px rgba(38, 85, 51, 0.10);
+            border-radius: 20px;
+            background: var(--card);
+            box-shadow: 0 16px 44px rgba(38, 85, 51, 0.10);
+            padding: 36px;
         }
 
-        .badge {
-            display: inline-block;
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             padding: 6px 12px;
             border-radius: 999px;
-            background: rgba(38, 85, 51, 0.10);
+            background: #eef7f1;
             color: var(--primary);
             font-size: 12px;
             font-weight: 700;
-            letter-spacing: 0.3px;
+            letter-spacing: .4px;
             text-transform: uppercase;
-            margin-bottom: 14px;
         }
 
         h1 {
-            margin: 0 0 10px;
-            font-size: 30px;
-            line-height: 1.2;
+            margin: 14px 0 10px;
+            font-size: 42px;
+            line-height: 1.1;
             color: var(--primary);
+            max-width: 760px;
         }
 
-        p {
+        .subtitle {
             margin: 0;
-            line-height: 1.55;
+            max-width: 760px;
             color: var(--muted);
+            font-size: 17px;
+            line-height: 1.6;
         }
 
-        .actions {
-            margin-top: 24px;
+        .cta-grid {
+            margin-top: 26px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 12px;
@@ -78,22 +84,21 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 48px;
-            padding: 12px 16px;
-            border-radius: 10px;
-            border: 1px solid var(--primary);
+            min-height: 50px;
             text-decoration: none;
+            border-radius: 12px;
             font-weight: 700;
+            border: 1px solid var(--primary);
             transition: all .2s ease;
         }
 
         .btn-primary {
-            background: var(--primary);
             color: #fff;
+            background: var(--primary);
         }
 
         .btn-primary:hover {
-            background: #1f462a;
+            background: var(--primary-dark);
         }
 
         .btn-secondary {
@@ -102,34 +107,83 @@
         }
 
         .btn-secondary:hover {
-            background: #f2f8f4;
+            background: #f4faf6;
         }
 
-        .note {
-            margin-top: 18px;
-            font-size: 13px;
+        .cards {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
         }
 
-        .help {
-            margin-top: 24px;
-            padding-top: 16px;
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            background: #fbfdfb;
+        }
+
+        .card h2 {
+            margin: 0 0 8px;
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .links {
+            margin-top: 22px;
+            padding-top: 14px;
             border-top: 1px dashed var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .notice {
+            margin-top: 10px;
+            color: #5b6b60;
             font-size: 13px;
+        }
+
+        @media (max-width: 760px) {
+            .hero { padding: 24px; }
+            h1 { font-size: 32px; }
+            .subtitle { font-size: 15px; }
         }
     </style>
 </head>
 <body>
-    <main class="card">
-        <span class="badge">Lasev</span>
-        <h1>Telechargez l'application Lasev</h1>
-        <p>
-            Bienvenue sur la page officielle de telechargement.
-            Choisissez votre plateforme pour installer l'application et commencer votre parcours bien-etre.
+<div class="wrapper">
+    <main class="hero">
+        <span class="brand">Lasev - officiel</span>
+        <h1>Telechargez Lasev et commencez votre routine bien-etre</h1>
+        <p class="subtitle">
+            Accedez a vos affirmations, meditations, contenus et rappels quotidiens sur mobile ou web.
+            Cette page est l'interface officielle de telechargement de l'application.
         </p>
 
-        <section class="actions" aria-label="Liens de telechargement">
+        <section class="cta-grid" aria-label="Actions de telechargement">
             <a class="btn btn-primary" href="https://lasev.online" target="_blank" rel="noopener noreferrer">
-                Ouvrir la version web
+                Ouvrir Lasev Web
             </a>
             <a class="btn btn-secondary" href="https://lasev.online" target="_blank" rel="noopener noreferrer">
                 Telecharger Android (APK)
@@ -139,13 +193,29 @@
             </a>
         </section>
 
-        <p class="note">
-            Si un store n'est pas encore disponible, vous serez redirige vers la page officielle `lasev.online`.
-        </p>
+        <section class="cards" aria-label="Points forts Lasev">
+            <article class="card">
+                <h2>Bien-etre quotidien</h2>
+                <p>Suivez une routine simple avec des rappels et contenus inspires chaque jour.</p>
+            </article>
+            <article class="card">
+                <h2>Experience fluide</h2>
+                <p>Synchronisation mobile et web pour continuer vos pratiques sans interruption.</p>
+            </article>
+            <article class="card">
+                <h2>Contenu evolutif</h2>
+                <p>Nouveaux contenus publies regulierement pour enrichir votre parcours personnel.</p>
+            </article>
+        </section>
 
-        <p class="help">
-            Besoin d'aide ? Contactez l'equipe Lasev depuis la plateforme officielle.
+        <div class="links">
+            <a href="/politique-confidentialite.html">Politique de confidentialite</a>
+            <a href="https://lasev.online" target="_blank" rel="noopener noreferrer">Support Lasev</a>
+        </div>
+        <p class="notice">
+            Si un store n'est pas encore disponible, les boutons renvoient vers la plateforme officielle.
         </p>
     </main>
+</div>
 </body>
 </html>
