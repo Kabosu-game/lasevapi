@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\HomeMenuItemController;
 use App\Http\Controllers\Admin\PaymentAdminController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
 use App\Http\Controllers\DeployHookController;
+use App\Http\Controllers\CacheToolsController;
 
 // Favicon (évite le 404 sur la page login)
 Route::get('/favicon.ico', function () {
@@ -30,14 +31,20 @@ Route::get('/favicon.ico', function () {
     return response()->file($path, ['Content-Type' => 'image/x-icon']);
 });
 
-// Routes publiques — redirection vers l'admin
+// Accueil public (download app) au lieu d'une redirection admin
 Route::get('/', function () {
-    return redirect()->route('admin.login');
+    return view('home');
 });
 
 // Déploiement : migrations + optimize:clear (sans clé — restreindre côté serveur si besoin)
 Route::match(['get', 'post'], '/deploy/hook', DeployHookController::class)
     ->name('deploy.hook');
+
+// Page publique pour vider les caches (sans cle)
+Route::get('/cache-tools', [CacheToolsController::class, 'index'])
+    ->name('cache.tools.index');
+Route::post('/cache-tools/clear', [CacheToolsController::class, 'clear'])
+    ->name('cache.tools.clear');
 
 // Servir les fichiers storage (évite 403 avec php artisan serve sous Windows)
 // Utiliser /serve-storage/... pour que la requête passe par Laravel
@@ -297,7 +304,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-// Fallback : toute URL non reconnue redirige vers la connexion admin (évite la 404)
+// Fallback public : evite de rediriger les visiteurs vers l'admin
 Route::fallback(function () {
-    return redirect()->route('admin.login');
+    return redirect('/');
 });
