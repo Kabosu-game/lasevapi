@@ -38,7 +38,15 @@ Route::get('/', function () {
 
 // Page politique de confidentialite accessible publiquement
 Route::get('/politique-confidentialite.html', function () {
-    return view('privacy-policy');
+    $policyFile = base_path('politique-confidentialite.html');
+
+    if (!file_exists($policyFile)) {
+        abort(404, 'Fichier de politique introuvable.');
+    }
+
+    return response()->file($policyFile, [
+        'Content-Type' => 'text/html; charset=UTF-8',
+    ]);
 })->name('privacy.policy');
 
 // Déploiement : migrations + optimize:clear (sans clé — restreindre côté serveur si besoin)
