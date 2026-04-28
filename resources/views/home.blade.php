@@ -182,13 +182,13 @@
         </p>
 
         <section class="cta-grid" aria-label="Actions de telechargement">
-            <a class="btn btn-primary" href="https://lasev.online" target="_blank" rel="noopener noreferrer">
+            <a class="btn btn-primary" href="https://https://lasev.nuju9944.odns.fr/" target="_blank" rel="noopener noreferrer">
                 Ouvrir Lasev Web
             </a>
-            <a class="btn btn-secondary" href="https://lasev.online" target="_blank" rel="noopener noreferrer">
+            <a class="btn btn-secondary" href="https://https://lasev.nuju9944.odns.fr/" target="_blank" rel="noopener noreferrer">
                 Telecharger Android (APK)
             </a>
-            <a class="btn btn-secondary" href="https://lasev.online" target="_blank" rel="noopener noreferrer">
+            <a class="btn btn-secondary" href="https://https://lasev.nuju9944.odns.fr/" target="_blank" rel="noopener noreferrer">
                 Telecharger iOS
             </a>
         </section>
@@ -210,7 +210,7 @@
 
         <div class="links">
             <a href="/politique-confidentialite.html">Politique de confidentialite</a>
-            <a href="https://lasev.online" target="_blank" rel="noopener noreferrer">Support Lasev</a>
+            <a href="https://https://lasev.nuju9944.odns.fr/" target="_blank" rel="noopener noreferrer">Support Lasev</a>
         </div>
         <p class="notice">
             Si un store n'est pas encore disponible, les boutons renvoient vers la plateforme officielle.
