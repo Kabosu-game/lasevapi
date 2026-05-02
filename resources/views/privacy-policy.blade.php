@@ -105,7 +105,7 @@
     <h2>6. Contact</h2>
     <p>
         Pour toute demande relative a vos donnees personnelles, utilisez la plateforme :
-        <a href="https://https://lasev.nuju9944.odns.fr/" target="_blank" rel="noopener noreferrer">https://https://lasev.nuju9944.odns.fr/</a>.
+        <a href="https://lasev.tarentity.com" target="_blank" rel="noopener noreferrer">https://lasev.tarentity.com</a>.
     </p>
 </main>
 </body>
