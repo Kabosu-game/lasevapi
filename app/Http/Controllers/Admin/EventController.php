@@ -30,6 +30,8 @@ class EventController extends Controller
             'description' => 'required|string',
             'event_date' => 'required|date',
             'location' => 'required|string|max:255',
+            'duration' => 'nullable|string|max:100',
+            'contact' => 'nullable|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'current_participants' => 'nullable|integer|min:0',
             'status' => 'required|in:upcoming,ongoing,completed,cancelled',
@@ -45,7 +47,7 @@ class EventController extends Controller
         }
 
         $event = Event::create($request->only([
-            'title', 'description', 'event_date', 'location',
+            'title', 'description', 'event_date', 'location', 'duration', 'contact',
             'price', 'current_participants', 'status',
         ]));
 
@@ -68,7 +70,7 @@ class EventController extends Controller
 
     public function show($id)
     {
-        $event = Event::with('media')->findOrFail($id);
+        $event = Event::with(['media', 'registrations'])->findOrFail($id);
         return view('admin.events.show', compact('event'));
     }
 
@@ -87,6 +89,8 @@ class EventController extends Controller
             'description' => 'required|string',
             'event_date' => 'required|date',
             'location' => 'required|string|max:255',
+            'duration' => 'nullable|string|max:100',
+            'contact' => 'nullable|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'current_participants' => 'nullable|integer|min:0',
             'status' => 'required|in:upcoming,ongoing,completed,cancelled',
@@ -104,7 +108,7 @@ class EventController extends Controller
         }
 
         $event->update($request->only([
-            'title', 'description', 'event_date', 'location',
+            'title', 'description', 'event_date', 'location', 'duration', 'contact',
             'price', 'current_participants', 'status',
         ]));
 

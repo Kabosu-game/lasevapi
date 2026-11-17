@@ -217,8 +217,8 @@
                                 @if($setting->description)
                                     <small class="form-text text-muted d-block mb-2">{{ $setting->description }}</small>
                                 @endif
-                                @if(strlen($setting->value) > 100 || str_contains($setting->key, 'message') || str_contains($setting->key, 'description'))
-                                    <textarea name="settings[{{ $setting->key }}]" class="form-control" rows="3">{{ $setting->value }}</textarea>
+                                @if(strlen($setting->value) > 100 || str_contains($setting->key, 'message') || str_contains($setting->key, 'description') || str_contains($setting->key, 'about') || str_contains($setting->key, 'policy'))
+                                    <textarea name="settings[{{ $setting->key }}]" class="form-control" rows="{{ max(3, min(16, (int) ceil(mb_strlen((string) $setting->value) / 110) + substr_count((string) $setting->value, "\n"))) }}">{{ $setting->value }}</textarea>
                                 @else
                                     <input type="text" name="settings[{{ $setting->key }}]" class="form-control" value="{{ $setting->value }}">
                                 @endif

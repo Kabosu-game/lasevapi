@@ -41,6 +41,14 @@
                         <td>{{ $event->location ?? 'N/A' }}</td>
                     </tr>
                     <tr>
+                        <th>Durée</th>
+                        <td>{{ $event->duration ?: '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Contact</th>
+                        <td>{{ $event->contact ?: '—' }}</td>
+                    </tr>
+                    <tr>
                         <th>Prix</th>
                         <td>
                             @if($event->price)
@@ -94,6 +102,32 @@
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <i class="bi bi-people"></i> Inscriptions depuis l'app ({{ $event->registrations->count() }})
+    </div>
+    <div class="card-body">
+        @if($event->registrations->isEmpty())
+            <p class="text-muted mb-0">Aucune inscription pour le moment.</p>
+        @else
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th></tr></thead>
+                    <tbody>
+                        @foreach($event->registrations as $registration)
+                            <tr>
+                                <td>{{ $registration->first_name }} {{ $registration->last_name }}</td>
+                                <td><a href="tel:{{ $registration->phone }}">{{ $registration->phone }}</a></td>
+                                <td>{{ $registration->created_at->format('d/m/Y à H:i') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

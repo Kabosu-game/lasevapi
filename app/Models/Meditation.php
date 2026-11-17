@@ -10,8 +10,11 @@ class Meditation extends Model
         'title',
         'slug',
         'description',
+        'category',
         'duration',
     ];
+
+    // Les catégories de l'espace ACTIVITÉS sont gérées dans l'admin : voir ActivityCategory.
 
     protected $appends = ['audio_url', 'image_url'];
 

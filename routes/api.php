@@ -30,6 +30,7 @@ Route::get('blogs', [BlogController::class, 'index']);
 Route::get('blogs/{id}', [BlogController::class, 'show']);
 Route::get('events', [EventController::class, 'index']);
 Route::get('events/{id}', [EventController::class, 'show']);
+Route::post('events/{event}/register', [EventController::class, 'register'])->middleware('throttle:10,1');
 Route::get('affirmations', [AffirmationController::class, 'index']);
 Route::get('affirmations/{id}', [AffirmationController::class, 'show']);
 Route::get('meditations', [MeditationController::class, 'index']);
@@ -91,6 +92,10 @@ Route::get('chefs', [\App\Http\Controllers\Api\CuisineController::class, 'chefs'
 // Menus page d'accueil (Affirmation, Meditation, etc. avec nom + image)
 Route::get('home-menu-items', [\App\Http\Controllers\Api\HomeMenuItemController::class, 'index']);
 
+// Listes de référence gérées dans l'admin : catégories Activités, exercices de respiration
+Route::get('activity-categories', [\App\Http\Controllers\Api\CatalogController::class, 'activityCategories']);
+Route::get('breathing-patterns', [\App\Http\Controllers\Api\CatalogController::class, 'breathingPatterns']);
+
 // Routes de paiement (authentifiées)
 Route::middleware('auth:sanctum')->group(function () {
     // Stripe payment routes
@@ -116,4 +121,56 @@ Route::post('capture-stripe-payment', [PublicPaymentController::class, 'captureS
 Route::post('create-paypal-order', [PublicPaymentController::class, 'createPayPalOrder']);
 Route::post('approve-paypal-order', [PublicPaymentController::class, 'approvePayPalOrder']);
 Route::post('record-payment', [PublicPaymentController::class, 'recordPayment']);
+
+/*
+|--------------------------------------------------------------------------
+| Nouvelle architecture fonctionnelle LASÈV
+|--------------------------------------------------------------------------
+*/
+
+// 5. ESPACE SACRÉ DES LOIS : bibliothèque de rituels (contenu public)
+Route::get('rituals/categories', [\App\Http\Controllers\Api\RitualController::class, 'categories']);
+Route::get('rituals', [\App\Http\Controllers\Api\RitualController::class, 'index']);
+Route::get('rituals/{ritual}', [\App\Http\Controllers\Api\RitualController::class, 'show'])->whereNumber('ritual');
+
+// Session mobile (identifiant d'appareil) et transfert vers un nouveau téléphone
+Route::middleware('throttle:20,1')->group(function () {
+    Route::post('auth/device', [\App\Http\Controllers\Api\DeviceAuthController::class, 'session']);
+    Route::post('auth/transfer', [\App\Http\Controllers\Api\DeviceAuthController::class, 'transfer']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('auth/transfer-code', [\App\Http\Controllers\Api\DeviceAuthController::class, 'transferCode']);
+
+    // 1. ORACLES
+    Route::get('oracle/status', [\App\Http\Controllers\Api\OracleController::class, 'status']);
+    Route::get('oracle/history', [\App\Http\Controllers\Api\OracleController::class, 'history']);
+    Route::post('oracle/draw', [\App\Http\Controllers\Api\OracleController::class, 'draw'])->middleware('throttle:10,1');
+
+    // 3. FITNESS CENTER
+    Route::get('fitness/programs', [\App\Http\Controllers\Api\FitnessController::class, 'programs']);
+    Route::get('fitness/programs/{program}', [\App\Http\Controllers\Api\FitnessController::class, 'program']);
+    Route::get('fitness/sessions', [\App\Http\Controllers\Api\FitnessController::class, 'sessions']);
+    Route::post('fitness/sessions', [\App\Http\Controllers\Api\FitnessController::class, 'storeSession']);
+
+    // 6. DÉFIS DU MOIS
+    Route::get('challenges', [\App\Http\Controllers\Api\ChallengeController::class, 'index']);
+    Route::get('challenges-summary', [\App\Http\Controllers\Api\ChallengeController::class, 'summary']);
+    Route::get('challenges/{challenge}', [\App\Http\Controllers\Api\ChallengeController::class, 'show']);
+    Route::post('challenges/{challenge}/join', [\App\Http\Controllers\Api\ChallengeController::class, 'join']);
+    Route::post('challenges/{challenge}/checkin', [\App\Http\Controllers\Api\ChallengeController::class, 'checkin']);
+
+    // FACE À TOI — Les 7 Portes Intérieures
+    Route::get('inner-gates', [\App\Http\Controllers\Api\InnerGateController::class, 'index']);
+    Route::get('inner-gates/{gate}', [\App\Http\Controllers\Api\InnerGateController::class, 'show'])->whereNumber('gate');
+    Route::post('inner-gates/steps/{step}/complete', [\App\Http\Controllers\Api\InnerGateController::class, 'completeStep'])
+        ->whereNumber('step')->middleware('throttle:60,1');
+
+    // 7. ASSISTANT IA (appels payants à Claude : débit limité par utilisateur)
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::post('assistant/greeting', [\App\Http\Controllers\Api\AssistantController::class, 'greeting']);
+        Route::post('assistant/checkin', [\App\Http\Controllers\Api\AssistantController::class, 'checkin']);
+        Route::post('assistant/chat', [\App\Http\Controllers\Api\AssistantController::class, 'chat']);
+    });
+});
 

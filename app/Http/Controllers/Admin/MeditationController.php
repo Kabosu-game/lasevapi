@@ -64,6 +64,7 @@ class MeditationController extends Controller
             'slug' => 'nullable|string|max:255|unique:meditations,slug',
             'description' => 'nullable|string',
             'duration' => 'nullable|integer',
+            'category' => 'required|string|exists:activity_categories,key',
             'media_title' => 'required|string|max:255',
             'media_slug' => 'nullable|string|max:255|unique:media,slug',
             'media_file' => 'required|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:512000', // 500MB max (pour viser >30 min selon bitrate)
@@ -95,7 +96,7 @@ class MeditationController extends Controller
                 ->with('error', 'Le fichier média n\'a pas pu être enregistré : ' . $e->getMessage());
         }
 
-        $meditation = Meditation::create($request->only(['title', 'slug', 'description', 'duration']));
+        $meditation = Meditation::create($request->only(['title', 'slug', 'description', 'category', 'duration']));
 
         $media = new Media([
             'title' => $request->media_title,
@@ -138,6 +139,7 @@ class MeditationController extends Controller
             'slug' => 'nullable|string|max:255|unique:meditations,slug,' . $meditation->id,
             'description' => 'nullable|string',
             'duration' => 'nullable|integer',
+            'category' => 'required|string|exists:activity_categories,key',
             'media_title' => 'sometimes|required|string|max:255',
             'media_slug' => 'nullable|string|max:255|unique:media,slug,' . ($meditation->media->id ?? 'NULL'),
             'media_file' => 'sometimes|file|mimes:mp3,mp4,m4a,mov,avi,wav,ogg,oga|max:512000', // 500MB max
@@ -149,7 +151,7 @@ class MeditationController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $meditation->update($request->only(['title', 'slug', 'description', 'duration']));
+        $meditation->update($request->only(['title', 'slug', 'description', 'category', 'duration']));
 
         if ($meditation->media) {
             $updateData = [

@@ -227,6 +227,42 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.activity-categories.index') }}" class="{{ request()->routeIs('admin.activity-categories.*') || request()->routeIs('admin.breathing-patterns.*') ? 'active' : '' }}">
+                    <i class="bi bi-headphones"></i>
+                    <span>Activités (catégories)</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.oracle-cards.index') }}" class="{{ request()->routeIs('admin.oracle-cards.*') ? 'active' : '' }}">
+                    <i class="bi bi-suit-diamond"></i>
+                    <span>Oracles (cartes)</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.fitness-programs.index') }}" class="{{ request()->routeIs('admin.fitness-programs.*') ? 'active' : '' }}">
+                    <i class="bi bi-activity"></i>
+                    <span>Fitness Center</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.challenges.index') }}" class="{{ request()->routeIs('admin.challenges.*') ? 'active' : '' }}">
+                    <i class="bi bi-trophy"></i>
+                    <span>Défis du mois</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.inner-gates.index') }}" class="{{ request()->routeIs('admin.inner-gates.*') ? 'active' : '' }}">
+                    <i class="bi bi-door-open"></i>
+                    <span>Face à toi (7 Portes)</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.rituals.index') }}" class="{{ request()->routeIs('admin.rituals.*') || request()->routeIs('admin.ritual-categories.*') ? 'active' : '' }}">
+                    <i class="bi bi-flower1"></i>
+                    <span>Espace Sacré des Lois</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.affirmations.index') }}" class="{{ request()->routeIs('admin.affirmations.*') ? 'active' : '' }}">
                     <i class="bi bi-quote"></i>
                     <span>Affirmations</span>
@@ -290,6 +326,12 @@
                 <a href="{{ route('admin.home-menu-items.index') }}" class="{{ request()->routeIs('admin.home-menu-items.*') ? 'active' : '' }}">
                     <i class="bi bi-grid-3x3-gap"></i>
                     <span>Menus page d'accueil</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.objectives.index') }}" class="{{ request()->routeIs('admin.objectives.*') ? 'active' : '' }}">
+                    <i class="bi bi-bullseye"></i>
+                    <span>Objectifs (inscription)</span>
                 </a>
             </li>
             <li>

@@ -36,6 +36,8 @@
                         <small class="form-text text-muted">Laissez vide pour génération automatique</small>
                     </div>
 
+                    @include('admin.meditations._category')
+
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
                         <textarea class="form-control @error('description') is-invalid @enderror" 

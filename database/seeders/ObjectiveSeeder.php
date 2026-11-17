@@ -2,33 +2,31 @@
 
 namespace Database\Seeders;
 
+use App\Models\Objective;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class ObjectiveSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Objectifs proposés à l'inscription (modifiables ensuite dans l'admin).
      */
     public function run(): void
     {
         $objectives = [
-            'Paix interieur',
-            'Reduction du stress',
+            'Paix intérieure',
+            'Réduction du stress',
             'Meilleur sommeil',
             'Concentration',
-            'Energie vitale',
-            'Creativité',
+            'Énergie vitale',
+            'Créativité',
             'Confiance en soi',
             'Relations harmonieuses',
+            'Santé globale',
+            'Éveil spirituel',
         ];
 
-        foreach ($objectives as $objective) {
-            DB::table('objectives')->insert([
-                'name' => $objective,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        foreach ($objectives as $i => $name) {
+            Objective::firstOrCreate(['name' => $name], ['sort_order' => $i + 1]);
         }
     }
 }

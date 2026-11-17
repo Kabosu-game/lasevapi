@@ -11,9 +11,13 @@ use Illuminate\Support\Facades\Validator;
 class MeditationController extends Controller
 {
     // Lister toutes les méditations
-    public function index()
+    public function index(Request $request)
     {
-        $meditations = Meditation::with('media')->get();
+        $query = Meditation::with('media');
+        if ($request->filled('category')) {
+            $query->where('category', $request->query('category'));
+        }
+        $meditations = $query->get();
         return response()->json($meditations);
     }
 

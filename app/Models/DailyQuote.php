@@ -40,21 +40,16 @@ class DailyQuote extends Model
                 ->first();
         }
         
+        // Aucune phrase programmée dans l'admin : rien à afficher.
         if (!$dailyQuote) {
-            // Citations par défaut
-            $defaultQuotes = [
-                'La paix intérieure commence par le sourire de l\'âme.',
-                'Chaque jour est une nouvelle opportunité de grandir.',
-                'La gratitude transforme ce que nous avons en suffisance.',
-            ];
-        } else {
-            $defaultQuotes = [
-                $dailyQuote->quote_1,
-                $dailyQuote->quote_2,
-                $dailyQuote->quote_3,
-            ];
+            return null;
         }
-        
+        $defaultQuotes = [
+            $dailyQuote->quote_1,
+            $dailyQuote->quote_2,
+            $dailyQuote->quote_3,
+        ];
+
         // Déterminer l'index selon l'heure
         $hour = $date->hour;
         if ($hour < 12) {
@@ -83,12 +78,9 @@ class DailyQuote extends Model
                 ->first();
         }
 
+        // Aucune phrase programmée dans l'admin : l'app masque la section.
         if (!$dailyQuote) {
-            return [
-                'La paix intérieure commence par le sourire de l\'âme.',
-                'Chaque jour est une nouvelle opportunité de grandir.',
-                'La gratitude transforme ce que nous avons en suffisance.',
-            ];
+            return [];
         }
 
         return [

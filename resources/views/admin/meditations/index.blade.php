@@ -12,6 +12,7 @@
 
 <div class="card">
     <div class="card-body">
+        @php($categoryNames = \App\Models\ActivityCategory::options())
         @if($meditations->count() > 0)
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -19,6 +20,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Titre</th>
+                            <th>Catégorie</th>
                             <th>Slug</th>
                             <th>Durée</th>
                             <th>Media</th>
@@ -31,6 +33,7 @@
                             <tr>
                                 <td>{{ $meditation->id }}</td>
                                 <td>{{ $meditation->title }}</td>
+                                <td><span class="badge bg-light text-dark">{{ $categoryNames[$meditation->category] ?? $meditation->category }}</span></td>
                                 <td><code>{{ $meditation->slug ?? 'N/A' }}</code></td>
                                 <td>{{ $meditation->duration ? gmdate('i:s', $meditation->duration) : 'N/A' }}</td>
                                 <td>

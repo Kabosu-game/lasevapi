@@ -55,6 +55,23 @@
             </div>
 
             <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="duration" class="form-label">Durée</label>
+                        <input type="text" class="form-control @error('duration') is-invalid @enderror" id="duration" name="duration" value="{{ old('duration', $event->duration) }}" maxlength="100" placeholder="ex. 3 jours, 2 heures">
+                        @error('duration')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="contact" class="form-label">Contact</label>
+                        <input type="text" class="form-control @error('contact') is-invalid @enderror" id="contact" name="contact" value="{{ old('contact', $event->contact) }}" maxlength="255" placeholder="téléphone ou e-mail affiché dans l'app">
+                        @error('contact')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label for="price" class="form-label">Prix ($)</label>

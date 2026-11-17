@@ -298,6 +298,45 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('home-menu-items/{id}/edit', [HomeMenuItemController::class, 'edit'])->name('home-menu-items.edit');
         Route::put('home-menu-items/{id}', [HomeMenuItemController::class, 'update'])->name('home-menu-items.update');
         
+        // ORACLES : jeu de cartes
+        Route::resource('oracle-cards', \App\Http\Controllers\Admin\OracleCardController::class)->except(['show']);
+
+        // DÉFIS DU MOIS : créer, modifier, programmer, clôturer, récompenser
+        Route::resource('challenges', \App\Http\Controllers\Admin\ChallengeAdminController::class);
+        Route::post('challenges/{challenge}/close', [\App\Http\Controllers\Admin\ChallengeAdminController::class, 'close'])->name('challenges.close');
+        Route::post('challenges/{challenge}/participants/{participant}/reward', [\App\Http\Controllers\Admin\ChallengeAdminController::class, 'toggleReward'])->name('challenges.reward');
+
+        // FITNESS CENTER : programmes et leçons
+        Route::resource('fitness-programs', \App\Http\Controllers\Admin\FitnessProgramController::class);
+        Route::prefix('fitness-programs/{fitnessProgram}/lessons')->name('fitness-programs.lessons.')->group(function () {
+            Route::get('create', [\App\Http\Controllers\Admin\FitnessProgramController::class, 'createLesson'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\FitnessProgramController::class, 'storeLesson'])->name('store');
+            Route::get('{lesson}/edit', [\App\Http\Controllers\Admin\FitnessProgramController::class, 'editLesson'])->name('edit');
+            Route::put('{lesson}', [\App\Http\Controllers\Admin\FitnessProgramController::class, 'updateLesson'])->name('update');
+            Route::delete('{lesson}', [\App\Http\Controllers\Admin\FitnessProgramController::class, 'destroyLesson'])->name('destroy');
+        });
+
+        // FACE À TOI — 7 Portes Intérieures : textes des portes et étapes
+        Route::resource('inner-gates', \App\Http\Controllers\Admin\InnerGateAdminController::class)->only(['index', 'show', 'edit', 'update']);
+        Route::prefix('inner-gates/{innerGate}/steps')->name('inner-gates.steps.')->group(function () {
+            Route::get('create', [\App\Http\Controllers\Admin\InnerGateAdminController::class, 'createStep'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\InnerGateAdminController::class, 'storeStep'])->name('store');
+            Route::get('{step}/edit', [\App\Http\Controllers\Admin\InnerGateAdminController::class, 'editStep'])->name('edit');
+            Route::put('{step}', [\App\Http\Controllers\Admin\InnerGateAdminController::class, 'updateStep'])->name('update');
+            Route::delete('{step}', [\App\Http\Controllers\Admin\InnerGateAdminController::class, 'destroyStep'])->name('destroy');
+        });
+
+        // ESPACE SACRÉ DES LOIS : catégories et tutoriels de rituels
+        Route::resource('ritual-categories', \App\Http\Controllers\Admin\RitualCategoryController::class)->except(['show']);
+        Route::resource('rituals', \App\Http\Controllers\Admin\RitualAdminController::class)->except(['show']);
+
+        // ACTIVITÉS : catégories et exercices de respiration guidés
+        Route::resource('activity-categories', \App\Http\Controllers\Admin\ActivityCategoryAdminController::class)->except(['show']);
+        Route::resource('breathing-patterns', \App\Http\Controllers\Admin\BreathingPatternAdminController::class)->except(['show']);
+
+        // Objectifs proposés à l'inscription dans l'app
+        Route::resource('objectives', \App\Http\Controllers\Admin\ObjectiveAdminController::class)->except(['show']);
+
         // CMS - Gestion des paramètres de l'application
         Route::prefix('cms')->name('cms.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('index');

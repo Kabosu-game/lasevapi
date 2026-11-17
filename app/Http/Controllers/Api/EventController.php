@@ -24,6 +24,50 @@ class EventController extends Controller
         return response()->json($event);
     }
 
+    /** POST /events/{event}/register : inscription depuis l'app (prénom, nom, téléphone). */
+    public function register(Request $request, Event $event)
+    {
+        $data = $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'phone' => ['required', 'string', 'max:40', 'regex:/^[0-9+().\s-]{6,40}$/'],
+        ], [
+            'phone.regex' => 'Le numéro de téléphone n\'est pas valide.',
+        ]);
+
+        if (!$event->acceptsRegistrations()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Les inscriptions sont fermées pour cet événement.',
+            ], 409);
+        }
+
+        $phone = trim($data['phone']);
+        if ($event->registrations()->where('phone', $phone)->exists()) {
+            return response()->json([
+                'success' => true,
+                'already_registered' => true,
+                'message' => 'Tu es déjà inscrit(e) à cet événement.',
+            ]);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($event, $data, $phone) {
+            $event->registrations()->create([
+                'first_name' => trim($data['first_name']),
+                'last_name' => trim($data['last_name']),
+                'phone' => $phone,
+            ]);
+            $event->increment('current_participants');
+        });
+
+        return response()->json([
+            'success' => true,
+            'already_registered' => false,
+            'message' => 'Inscription enregistrée. L\'équipe te contactera bientôt.',
+            'participants' => $event->fresh()->current_participants,
+        ], 201);
+    }
+
     // Créer un événement avec une galerie d'images
     public function store(Request $request)
     {

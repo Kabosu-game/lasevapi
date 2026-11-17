@@ -28,11 +28,19 @@ class HomeMenuItemController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'sort_order' => 'nullable|integer|min:0|max:999',
         ]);
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
         $item->name = $request->name;
+        if ($request->filled('sort_order')) {
+            $item->sort_order = (int) $request->sort_order;
+        }
+        // Les anciennes rubriques remplacées restent masquées.
+        if (!$item->isLegacy() && $request->has('is_visible')) {
+            $item->is_visible = $request->boolean('is_visible');
+        }
         if ($request->boolean('remove_image')) {
             if ($item->image) {
                 Storage::disk('public')->delete($item->image);

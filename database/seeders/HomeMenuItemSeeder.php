@@ -9,20 +9,26 @@ class HomeMenuItemSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ordre de la page d'accueil de l'app (modifiable ensuite dans l'admin).
         $items = [
-            ['slug' => 'affirmation', 'name' => 'Affirmation', 'sort_order' => 1],
-            ['slug' => 'meditation', 'name' => 'Meditation', 'sort_order' => 2],
-            ['slug' => 'articles', 'name' => 'Le pouvoir secret', 'sort_order' => 3],
-            ['slug' => 'gratitude', 'name' => 'Gratitude', 'sort_order' => 4],
-            ['slug' => 'events', 'name' => 'Evenement', 'sort_order' => 5],
-            ['slug' => 'retreats', 'name' => 'Plan de retraite', 'sort_order' => 6],
-            ['slug' => 'cuisine', 'name' => 'Cuisine', 'sort_order' => 7],
+            ['slug' => 'assistant', 'name' => 'Assistant IA'],
+            ['slug' => 'oracles', 'name' => 'Oracles'],
+            ['slug' => 'activities', 'name' => 'Activités'],
+            ['slug' => 'fitness', 'name' => 'Fitness Center'],
+            ['slug' => 'journal', 'name' => 'My Journal'],
+            ['slug' => 'challenges', 'name' => 'Défis du mois'],
+            ['slug' => 'inner-gates', 'name' => 'Face à toi'],
+            ['slug' => 'sacred-space', 'name' => 'Espace Sacré des Lois'],
+            ['slug' => 'articles', 'name' => 'Le pouvoir secret'],
+            ['slug' => 'events', 'name' => 'Événements'],
+            ['slug' => 'retreats', 'name' => 'Plan de retraite'],
+            ['slug' => 'cuisine', 'name' => 'Cuisine'],
         ];
 
-        foreach ($items as $data) {
+        foreach ($items as $i => $data) {
             HomeMenuItem::firstOrCreate(
                 ['slug' => $data['slug']],
-                ['name' => $data['name'], 'sort_order' => $data['sort_order']]
+                ['name' => $data['name'], 'sort_order' => $i + 1, 'is_visible' => true]
             );
         }
     }

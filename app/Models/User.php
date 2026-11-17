@@ -25,6 +25,7 @@ class User extends Authenticatable
         'date_of_birth',
         'gender',
         'device_id',
+        'transfer_code',
         'is_premium',
         'premium_expires_at',
         'role',
@@ -38,6 +39,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'transfer_code',
     ];
 
     /**
