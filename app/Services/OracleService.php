@@ -21,10 +21,6 @@ class OracleService
 {
     public const INTERVAL_DAYS = 3;
 
-    public function __construct(private AiCompanion $ai)
-    {
-    }
-
     public function cycle(?CarbonInterface $at = null): string
     {
         return ($at ?? now())->format('Y-m');
@@ -104,7 +100,6 @@ class OracleService
             }
         });
 
-        // Interprétation personnalisée calculée hors transaction (appel réseau).
         $draw->personalized_interpretation = $this->personalize($draw->card, $profile);
         $draw->save();
 
@@ -117,34 +112,7 @@ class OracleService
         $name = trim((string) ($profile['name'] ?? ''));
         $goals = array_values(array_filter(array_map('strval', (array) ($profile['goals'] ?? []))));
 
-        if ($profile !== [] && $this->ai->enabled()) {
-            $result = $this->ai->json(
-                'Rédige l\'interprétation personnalisée d\'une carte oracle tirée par l\'utilisateur. '
-                . 'Appuie-toi sur le sens de la carte et, s\'ils sont fournis, sur son prénom, son âge et ses objectifs. '
-                . 'Présente-la comme une piste de réflexion symbolique, jamais comme une prédiction. '
-                . '3 à 5 phrases, puis une question d\'introspection.',
-                json_encode([
-                    'carte' => ['nom' => $card->name, 'message' => $card->message, 'sens' => $card->interpretation, 'mots_cles' => $card->keywords],
-                    'profil' => array_filter([
-                        'prenom' => $name ?: null,
-                        'age' => $profile['age'] ?? null,
-                        'objectifs' => $goals ?: null,
-                    ]),
-                ], JSON_UNESCAPED_UNICODE),
-                [
-                    'type' => 'object',
-                    'properties' => ['interpretation' => ['type' => 'string']],
-                    'required' => ['interpretation'],
-                    'additionalProperties' => false,
-                ],
-                1500,
-            );
-            if (!empty($result['interpretation'])) {
-                return $result['interpretation'];
-            }
-        }
-
-        // Repli sans IA : interprétation de la carte, adressée et reliée aux objectifs.
+        // Interprétation écrite dans l'admin, adressée à l'utilisateur et reliée à ses objectifs (aucun texte généré).
         $intro = $name !== '' ? $name . ', ' : '';
         $text = $intro . lcfirst($card->interpretation);
         if ($goals) {

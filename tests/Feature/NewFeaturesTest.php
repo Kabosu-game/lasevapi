@@ -41,12 +41,6 @@ class NewFeaturesTest extends TestCase
         return ['--path' => $paths, '--realpath' => true];
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        config(['services.anthropic.key' => '']); // tests sans appel réseau : réponses de repli
-    }
-
     private function deviceToken(string $deviceId = null, string $name = 'Marie Dupont'): array
     {
         $deviceId ??= Str::random(32);
@@ -213,37 +207,33 @@ class NewFeaturesTest extends TestCase
             ->assertJsonPath('data.lessons.0.video', 'https://example.com/v.mp4');
     }
 
-    public function test_assistant_fallbacks_without_api_key(): void
+    public function test_companion_greeting_and_checkin_use_written_messages_only(): void
     {
         [$token] = $this->deviceToken();
 
-        $this->api($token)->postJson('/api/assistant/greeting', ['first_name' => 'Marie', 'pending' => ['Méditation'], 'hour' => 8])
-            ->assertOk()->assertJsonPath('ai', false)
-            ->assertJsonPath('data.message', fn ($m) => str_contains($m, 'Bonjour Marie'));
+        // Matin, rien fait : message du matin (priorité 10) plutôt que l'accueil par défaut.
+        $res = $this->api($token)->postJson('/api/assistant/greeting', ['first_name' => 'Marie', 'pending' => ['Méditation'], 'hour' => 8])
+            ->assertOk()->assertJsonPath('ai', false);
+        $this->assertStringContainsString('Bonjour Marie', $res->json('data.message'));
+        $this->assertSame('morning', $res->json('data.messages.0.trigger'));
+        $this->assertSame('breathing', $res->json('data.messages.0.action'));
 
         $res = $this->api($token)->postJson('/api/assistant/checkin', [
             'mood' => 3, 'energy' => 1, 'sleep' => 2, 'emotion' => 'fatigué', 'stress' => 4, 'wants_activity' => false,
-        ])->assertOk();
+        ])->assertOk()->assertJsonPath('ai', false);
         $this->assertStringContainsString('très faible', $res->json('data.summary'));
         $this->assertSame('breathing', $res->json('data.recommendations.0.type'));
 
-        $this->api($token)->postJson('/api/assistant/chat', ['messages' => [['role' => 'user', 'content' => 'Bonjour']]])
-            ->assertOk()->assertJsonPath('ai', false);
-        $this->api($token)->postJson('/api/assistant/chat', ['messages' => [['role' => 'assistant', 'content' => 'Salut']]])
-            ->assertStatus(422);
-
-        // Discussion ouverte depuis une porte du parcours « Face à toi ».
-        $this->api($token)->postJson('/api/assistant/chat', [
-            'messages' => [['role' => 'user', 'content' => 'Je bloque sur cette porte']],
-            'topic' => 'Porte 1 · Chakra Racine — Mes fondations et mes peurs',
-        ])->assertOk()->assertJsonPath('data.reply', fn ($r) => str_contains($r, 'ce thème'));
+        // La discussion libre avec une IA n'existe plus.
+        $status = $this->api($token)->postJson('/api/assistant/chat', ['messages' => [['role' => 'user', 'content' => 'Bonjour']]])->status();
+        $this->assertContains($status, [404, 405]);
     }
 
     public function test_new_endpoints_require_authentication(): void
     {
         $this->getJson('/api/oracle/status')->assertUnauthorized();
         $this->getJson('/api/challenges')->assertUnauthorized();
-        $this->postJson('/api/assistant/chat', [])->assertUnauthorized();
+        $this->postJson('/api/assistant/greeting', [])->assertUnauthorized();
         $this->getJson('/api/inner-gates')->assertUnauthorized();
     }
 

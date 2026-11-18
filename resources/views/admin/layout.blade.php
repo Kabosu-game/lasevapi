@@ -335,6 +335,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('admin.companion.index') }}" class="{{ request()->routeIs('admin.companion.*') ? 'active' : '' }}">
+                    <i class="bi bi-bell"></i>
+                    <span>Compagnon et rappels</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.daily-quotes.index') }}" class="{{ request()->routeIs('admin.daily-quotes.*') ? 'active' : '' }}">
                     <i class="bi bi-calendar-heart"></i>
                     <span>Phrases du Jour</span>

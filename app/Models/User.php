@@ -54,6 +54,7 @@ class User extends Authenticatable
             'date_of_birth' => 'date',
             'is_premium' => 'boolean',
             'premium_expires_at' => 'datetime',
+            'companion_last_seen_at' => 'datetime',
         ];
     }
 

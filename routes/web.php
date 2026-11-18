@@ -336,6 +336,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Objectifs proposés à l'inscription dans l'app
         Route::resource('objectives', \App\Http\Controllers\Admin\ObjectiveAdminController::class)->except(['show']);
+        // Compagnon : notifications de rappel et messages de « Mon compagnon »
+        Route::post('companion/settings', [\App\Http\Controllers\Admin\CompanionMessageAdminController::class, 'settings'])->name('companion.settings');
+        Route::post('companion/{companion}/toggle', [\App\Http\Controllers\Admin\CompanionMessageAdminController::class, 'toggle'])->name('companion.toggle');
+        Route::resource('companion', \App\Http\Controllers\Admin\CompanionMessageAdminController::class)->except(['show']);
 
         // CMS - Gestion des paramètres de l'application
         Route::prefix('cms')->name('cms.')->group(function () {

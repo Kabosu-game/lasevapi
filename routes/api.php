@@ -166,11 +166,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('inner-gates/steps/{step}/complete', [\App\Http\Controllers\Api\InnerGateController::class, 'completeStep'])
         ->whereNumber('step')->middleware('throttle:60,1');
 
-    // 7. ASSISTANT IA (appels payants à Claude : débit limité par utilisateur)
+    // 7. COMPAGNON (sans IA : messages et rappels écrits dans l'admin)
     Route::middleware('throttle:30,1')->group(function () {
         Route::post('assistant/greeting', [\App\Http\Controllers\Api\AssistantController::class, 'greeting']);
         Route::post('assistant/checkin', [\App\Http\Controllers\Api\AssistantController::class, 'checkin']);
-        Route::post('assistant/chat', [\App\Http\Controllers\Api\AssistantController::class, 'chat']);
+        Route::get('companion/notifications', [\App\Http\Controllers\Api\AssistantController::class, 'notifications']);
     });
 });
 

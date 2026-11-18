@@ -4,19 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityCategory;
-use App\Services\AiCompanion;
+use App\Services\CompanionService;
 use Illuminate\Http\Request;
 
 /**
- * ASSISTANT IA — compagnon personnel LASÈV :
- *  A. accueil personnalisé, B. rappels intelligents (à partir des activités non accomplies
- *  envoyées par l'app), C. bilan énergétique quotidien (évaluation déclarative), D. recommandations.
+ * COMPAGNON LASÈV (sans IA) :
+ *  A. accueil et messages choisis parmi ceux écrits dans l'admin (Compagnon > Messages),
+ *  B. rappels à partir des activités non accomplies envoyées par l'app,
+ *  C. bilan énergétique quotidien (évaluation déclarative), D. recommandations par règles simples.
+ * Aucun texte n'est généré : tout ce que l'utilisateur lit a été écrit par l'équipe.
  */
 class AssistantController extends Controller
 {
-    private const RECOMMENDATION_TYPES = ['meditation', 'music', 'yoga', 'physical', 'breathing', 'introspection', 'challenge'];
-
-    public function __construct(private AiCompanion $ai)
+    public function __construct(private CompanionService $companion)
     {
     }
 
@@ -35,33 +35,21 @@ class AssistantController extends Controller
             'missed_yesterday.*' => 'string|max:160',
             'hour' => 'nullable|integer|min:0|max:23',
         ]);
-        $name = trim($data['first_name'] ?? '') ?: ($request->user()->name !== 'Membre LASÈV' ? $request->user()->name : '');
-
-        $message = $this->ai->json(
-            'Écris le message d\'accueil du jour pour l\'utilisateur : salue-le par son prénom, '
-            . 'félicite les efforts déjà accomplis, rappelle avec douceur les activités prévues ou non accomplies hier, '
-            . 'et encourage-le à reprendre sa routine s\'il l\'a interrompue. 2 à 4 phrases, sans liste.',
-            json_encode([
-                'prenom' => $name ?: null,
-                'heure_locale' => $data['hour'] ?? null,
-                'objectifs' => $data['goals'] ?? [],
-                'activites_prevues_aujourdhui' => $data['pending'] ?? [],
-                'deja_fait_aujourdhui' => $data['done_today'] ?? [],
-                'non_accompli_hier' => $data['missed_yesterday'] ?? [],
-            ], JSON_UNESCAPED_UNICODE),
-            [
-                'type' => 'object',
-                'properties' => ['message' => ['type' => 'string']],
-                'required' => ['message'],
-                'additionalProperties' => false,
-            ],
-            1200,
-        )['message'] ?? null;
+        $result = $this->companion->forUser($request->user(), $data);
 
         return response()->json([
             'success' => true,
-            'ai' => $message !== null,
-            'data' => ['message' => $message ?? $this->fallbackGreeting($name, $data)],
+            'ai' => false,
+            'data' => $result,
+        ]);
+    }
+
+    /** GET /companion/notifications : règles des rappels à programmer sur le téléphone. */
+    public function notifications(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $this->companion->notificationPlan($request->user()),
         ]);
     }
 
@@ -81,143 +69,17 @@ class AssistantController extends Controller
             'goals.*' => 'string|max:120',
         ]);
 
-        $result = $this->ai->json(
-            'L\'utilisateur vient de remplir son bilan énergétique quotidien (évaluation déclarative de son bien-être, '
-            . 'notes de 1 = très bas à 5 = très haut ; pour le stress, 5 = très stressé). '
-            . 'Rédige une courte analyse bienveillante (2 à 3 phrases, en citant son niveau d\'énergie déclaré) puis propose '
-            . '2 à 4 recommandations concrètes et adaptées, de durée réaliste. '
-            . 'Types : meditation, music (préciser category), yoga, physical, breathing, introspection, challenge. '
-            . 'Catégories de l\'espace Activités : ' . $this->categoryList() . '. '
-            . 'Si l\'utilisateur ne souhaite pas d\'activité, privilégie des propositions très douces et courtes. '
-            . 'Rappelle-toi qu\'il s\'agit d\'une évaluation déclarative, pas d\'un diagnostic.',
-            json_encode($data, JSON_UNESCAPED_UNICODE),
-            [
-                'type' => 'object',
-                'properties' => [
-                    'summary' => ['type' => 'string'],
-                    'recommendations' => [
-                        'type' => 'array',
-                        'items' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'type' => ['type' => 'string', 'enum' => self::RECOMMENDATION_TYPES],
-                                'title' => ['type' => 'string'],
-                                'reason' => ['type' => 'string'],
-                                'duration_minutes' => ['type' => 'integer'],
-                                'category' => ['type' => 'string', 'enum' => $this->musicCategories()],
-                            ],
-                            'required' => ['type', 'title', 'reason', 'duration_minutes', 'category'],
-                            'additionalProperties' => false,
-                        ],
-                    ],
-                ],
-                'required' => ['summary', 'recommendations'],
-                'additionalProperties' => false,
-            ],
-        );
-
-        $valid = is_array($result)
-            && is_string($result['summary'] ?? null)
-            && is_array($result['recommendations'] ?? null)
-            && $result['recommendations'] !== [];
-
         return response()->json([
             'success' => true,
-            'ai' => $valid,
-            'data' => $this->withKnownCategories($valid ? $result : $this->fallbackCheckin($data)),
+            'ai' => false,
+            'data' => $this->withKnownCategories($this->fallbackCheckin($data)),
         ]);
-    }
-
-    /** POST /assistant/chat */
-    public function chat(Request $request)
-    {
-        $data = $request->validate([
-            'messages' => 'required|array|min:1|max:30',
-            'messages.*.role' => 'required|in:user,assistant',
-            'messages.*.content' => 'required|string|max:2000',
-            'first_name' => 'nullable|string|max:80',
-            'goals' => 'nullable|array|max:20',
-            'goals.*' => 'string|max:120',
-            // Porte en cours du parcours « Face à toi » quand la discussion est ouverte depuis ce parcours.
-            'topic' => 'nullable|string|max:300',
-        ]);
-
-        $messages = array_values(array_map(
-            fn ($m) => ['role' => $m['role'], 'content' => $m['content']],
-            $data['messages'],
-        ));
-        // La conversation doit commencer par l'utilisateur et s'y terminer.
-        while ($messages && $messages[0]['role'] !== 'user') {
-            array_shift($messages);
-        }
-        if (!$messages || end($messages)['role'] !== 'user') {
-            return response()->json(['success' => false, 'message' => 'Le dernier message doit venir de l\'utilisateur.'], 422);
-        }
-
-        $context = 'Prénom : ' . ($data['first_name'] ?? 'inconnu')
-            . '. Objectifs : ' . (implode(', ', $data['goals'] ?? []) ?: 'non précisés') . '.';
-
-        $topic = trim($data['topic'] ?? '');
-        $guide = $topic === '' ? '' : ' L\'utilisateur parcourt « Face à toi – Les 7 Portes Intérieures », un parcours '
-            . 'd\'introspection inspiré de la symbolique des chakras. Il travaille sur : « ' . $topic . ' ». '
-            . 'Guide-le sur ce thème avec des questions ouvertes et bienveillantes, une à la fois, sans jugement ni '
-            . 'interprétation définitive. Présente les chakras comme des symboles de réflexion, jamais comme une réalité médicale.';
-
-        $reply = $this->ai->chat(
-            'Tu réponds dans le chat de l\'application. ' . $context . $guide
-            . ' Tu peux suggérer les espaces de l\'app : Oracles, Activités (' . $this->categoryNames() . '), Fitness Center, My Journal, Défis du mois, Face à toi (7 Portes Intérieures), '
-            . 'Espace Sacré des Lois (bibliothèque de rituels). Réponses courtes (5 phrases maximum).',
-            $messages,
-        );
-
-        $fallback = $topic === ''
-            ? 'Je ne peux pas te répondre pour le moment. En attendant, tu peux faire le bilan du jour ou prendre quelques respirations profondes : inspire 4 secondes, expire 6 secondes.'
-            : 'Je ne peux pas te répondre pour le moment. En attendant, prends quelques respirations lentes et écris ce que ce thème éveille en toi : une émotion, un souvenir, une question. Il n\'y a pas de bonne ou de mauvaise réponse.';
-
-        return response()->json([
-            'success' => true,
-            'ai' => $reply !== null,
-            'data' => ['reply' => $reply ?? $fallback],
-        ]);
-    }
-
-    /** @param array<string,mixed> $data */
-    private function fallbackGreeting(string $name, array $data): string
-    {
-        $hour = $data['hour'] ?? (int) now()->format('G');
-        $hello = $hour < 18 ? 'Bonjour' : 'Bonsoir';
-        $text = trim($hello . ' ' . $name) . '. Heureuse de te retrouver aujourd\'hui. ';
-
-        if (!empty($data['done_today'])) {
-            $text .= 'Bravo pour ce que tu as déjà accompli : ' . implode(', ', $data['done_today']) . '. ';
-        } elseif (!empty($data['missed_yesterday'])) {
-            $text .= 'Hier a été plus calme, et c\'est normal : chaque jour est une nouvelle occasion de reprendre ta routine. ';
-        } else {
-            $text .= 'Ton évolution commence par les petites décisions que tu prends chaque matin. ';
-        }
-        if (!empty($data['pending'])) {
-            $text .= 'Voici ton programme du jour.';
-        }
-        return $text;
     }
 
     /** Clés des catégories Activités visibles dans l'app (gérées dans l'admin). @return list<string> */
     private function musicCategories(): array
     {
         return ActivityCategory::activeKeys() ?: ['meditation'];
-    }
-
-    /** « clé (Nom), … » pour guider l'IA. */
-    private function categoryList(): string
-    {
-        $names = ActivityCategory::where('is_active', true)->ordered()->pluck('name', 'key');
-        return $names->map(fn ($name, $key) => $key . ' (' . $name . ')')->implode(', ');
-    }
-
-    /** « Méditation, Jogging, … » pour le chat. */
-    private function categoryNames(): string
-    {
-        return ActivityCategory::where('is_active', true)->ordered()->pluck('name')->implode(', ');
     }
 
     /**
@@ -236,7 +98,7 @@ class AssistantController extends Controller
         return $result;
     }
 
-    /** Recommandations par règles simples quand l'IA est indisponible. @param array<string,mixed> $d */
+    /** Recommandations par règles simples, selon les réponses du bilan. @param array<string,mixed> $d */
     private function fallbackCheckin(array $d): array
     {
         $recs = [];

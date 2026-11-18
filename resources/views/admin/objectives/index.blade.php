@@ -9,7 +9,7 @@
 </div>
 
 <div class="alert alert-info">
-    <i class="bi bi-info-circle"></i> Liste affichée lors de la création du profil dans l'app. Les objectifs choisis guident aussi l'Assistant IA.
+    <i class="bi bi-info-circle"></i> Liste affichée lors de la création du profil dans l'app. Les objectifs choisis personnalisent aussi les propositions du compagnon.
 </div>
 
 <div class="card">
