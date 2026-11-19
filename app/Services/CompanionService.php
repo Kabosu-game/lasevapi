@@ -197,7 +197,7 @@ class CompanionService
     private function fill(string $text, array $replace): string
     {
         $text = strtr($text, $replace);
-        // Prénom inconnu : « Bonjour . » devient « Bonjour. » et « , . » disparaît.
-        return trim(preg_replace(['/\s+([.,!?])/u', '/,\s*\./u', '/\s{2,}/u'], ['$1', '.', ' '], $text));
+        // Prénom inconnu : « Bonjour . » devient « Bonjour. » et « , . » disparaît ; l'espace avant ! et ? reste (typographie française).
+        return trim(preg_replace(['/\s+([.,])/u', '/,\s*\./u', '/\s{2,}/u'], ['$1', '.', ' '], $text));
     }
 }
